@@ -30,7 +30,7 @@ func Parse(dir string, ch *sse.Channel) error {
     if _, err := os.Stat(filename); os.IsNotExist(err) {
         fmt.Printf("no such file or directory: %s", filename)
         ch.Messages <- ".gitdeploy.yml not found, skipping"
-        return
+        return nil
     }
 
     data, err := ioutil.ReadFile(filename)

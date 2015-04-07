@@ -36,11 +36,14 @@ func (p *pipe) Write(d []byte) (n int, err error) {
 }
 
 func main() {
-    pgHost := env.Getenv("PGHOST", "localhost")
-    pgDatabase := env.Getenv("PGDATABASE", "gitdeploy")
-    pgUser := env.Getenv("PGUSER", "gitdeploy")
-    pgPassword := env.Getenv("PGPASSWORD", "changeme")
-    pgPath := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", pgUser, pgPassword, pgHost, pgDatabase)
+    pgPath := env.Getenv("PGPATH", "")
+    if len(pgPath) < 1 {
+        pgHost := env.Getenv("PGHOST", "localhost")
+        pgDatabase := env.Getenv("PGDATABASE", "gitdeploy")
+        pgUser := env.Getenv("PGUSER", "gitdeploy")
+        pgPassword := env.Getenv("PGPASSWORD", "changeme")
+        pgPath = fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", pgUser, pgPassword, pgHost, pgDatabase)
+    }
     host := env.Getenv("HOST", "")
     port := env.Getenv("PORT", "7654")
     listen := fmt.Sprintf("%s:%s", host, port)
@@ -75,7 +78,7 @@ func main() {
 func initPg(pgPath string) *sql.DB {
     db, err := sql.Open("postgres", pgPath)
     if err != nil {
-        log.Fatal(err)
+        log.Fatalf("Could not connect to pg: %s", err)
     }
     dat, err := ioutil.ReadFile("./schema.sql")
     if err != nil {
@@ -174,6 +177,8 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker)
             response.Write(w, re)
             return
         }
+        // TODO fix host
+        c.Messages <- fmt.Sprintf("Deployment successful. Your app is now available at %s.ew2.flynnhub.com", app)
     }()
 }
 
