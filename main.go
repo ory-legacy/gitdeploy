@@ -76,6 +76,7 @@ func main() {
 }
 
 func initPg(pgPath string) *sql.DB {
+    log.Println("Connecting to postgres...")
     db, err := sql.Open("postgres", pgPath)
     if err != nil {
         log.Fatalf("Could not connect to pg: %s", err)
