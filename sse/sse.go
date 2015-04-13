@@ -1,158 +1,127 @@
-// Golang HTML5 Server Side Events Server based on
-// https://github.com/kljensen/golang-html5-sse-example
 package sse
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/ory-am/gitdeploy/storage"
+	"gopkg.in/mgo.v2"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 )
 
-// A single Broker will be created in this program. It is responsible
-// for keeping a list of which Clients (browsers) are currently attached
-// and broadcasting events (Messages) to those Clients.
-//
+// Broker is a singleton
+var brokerInstance *Broker
+
 type Broker struct {
 	// All channels
-	Channels map[string]*Channel
+	channels map[string]*channel
+	storage  storage.Storage
 }
 
-type Channel struct {
+type channel struct {
 	// Create a map of Clients, the keys of the map are the channels
 	// over which we can push Messages to attached Clients.  (The values
 	// are just booleans and are meaningless.)
 	//
-	Clients map[chan string]bool
+	clients map[chan *storage.LogEvent]bool
 
 	// Channel into which new Clients can be pushed
 	//
-	NewClients chan chan string
+	newClients chan chan *storage.LogEvent
 
 	// Channel into which disconnected Clients should be pushed
 	//
-	DefunctClients chan chan string
-
-	// Channel into which Messages are pushed to be broadcast out
-	// to attahed Clients.
-	//
-	Messages chan string
+	defunctClients chan chan *storage.LogEvent
 }
 
-func (b *Broker) OpenChannel(channel string) *Channel {
-	b.Channels[channel] = &Channel{
-        make(map[chan string]bool),
-        make(chan (chan string)),
-        make(chan (chan string)),
-        make(chan string),
-    }
-	log.Printf("Opened channel %s.", channel)
-	return b.Channels[channel]
+func (b *Broker) OpenChannel(name string) *channel {
+	c := &channel{
+		make(map[chan *storage.LogEvent]bool),
+		make(chan (chan *storage.LogEvent)),
+		make(chan (chan *storage.LogEvent)),
+	}
+	log.Printf("Opening channel %s.", name)
+	b.channels[name] = c
+	return c
 }
 
 func (b *Broker) CloseChannel(channel string) {
-	delete(b.Channels, channel)
+	delete(b.channels, channel)
 	log.Printf("Closed channel %s.", channel)
 }
 
-func (b *Broker) AddMessage(channel string, message string) {
-	c, ok := b.Channels[channel]
-	if !ok {
-		log.Printf("Channel %s not found, creating...", channel)
-		c = b.OpenChannel(channel)
-	}
-	c.Messages <- message
-	log.Printf("Added message %s to channel %s", message, channel)
-}
-
-// This Broker method starts a new goroutine.  It handles
+// Start starts a new go routine. It handles
 // the addition & removal of Clients, as well as the broadcasting
 // of Messages out to Clients that are currently attached.
 //
-func (b *Broker) Start() {
-	// Start a goroutine
-	//
+func (b *Broker) Start(channel string) error {
+	c, ok := b.channels[channel]
+	if !ok {
+		return errors.New("Channel does not exist.")
+	}
+
 	go func() {
-
-		// Loop endlessly
-		//
 		for {
-			var wg sync.WaitGroup
-
-			// Loop through all channels
-			for channelName, c := range b.Channels {
-				log.Printf("Cycling channel %s", channelName)
-				wg.Add(1)
-				timeout := make(chan bool, 1)
-				go func() {
-					time.Sleep(5 * time.Second)
-					timeout <- true
-				}()
-
-				// Handle each channel in a separate go routine
-				go func() {
-					defer wg.Done()
-
-					// Block until we receive from one of the
-					// three following channels.
-					select {
-
-					case s := <-c.NewClients:
-
-						// There is a new client attached and we
-						// want to start sending them Messages.
-						c.Clients[s] = true
-						log.Println("Added new client.")
-
-					case s := <-c.DefunctClients:
-
-						// A client has dettached and we want to
-						// stop sending them Messages.
-						delete(c.Clients, s)
-						log.Println("Removed client.")
-
-					case msg := <-c.Messages:
-
-						// TODO unhack...
-						log.Println("Waiting for clients.")
-						if len(c.Clients) < 1 {
-							select {
-							case s := <-c.NewClients:
-								c.Clients[s] = true
-								log.Println("Added new client.")
-							case <- timeout:
-								log.Println("No client available, moving on.")
-								return
-							}
-						}
-
-						// There is a new message to send.  For each
-						// attached client, push the new message
-						// into the client's message channel.
-						for s := range c.Clients {
-							s <- msg
-						}
-						log.Printf("Broadcast message %s on channel %s to %d clients", msg, channelName, len(c.Clients))
-					case <- timeout:
-						log.Println("Warning: Nothing is happening, moving on.")
-						return
-					}
-					log.Printf("Ending channel %s's cycle", channelName)
-				}()
+			if _, ok := b.channels[channel]; !ok {
+				// Channel closed
+				return
 			}
-			wg.Wait()
+
+			// TODO Unhack
+			nextMessage, err := b.PullNextMessage(c, channel)
+			if err != nil {
+				log.Printf("An error occured while pulling a message: %s", err.Error())
+				time.Sleep(time.Second)
+				continue
+			}
+
+			select {
+			case s := <-c.newClients:
+				// There is a new client attached and we
+				// want to start sending them Messages.
+				c.clients[s] = true
+				log.Println("Added new client.")
+
+			case s := <-c.defunctClients:
+				// A client has dettached and we want to
+				// stop sending them Messages.
+				delete(c.clients, s)
+				log.Println("Removed client.")
+
+			case s := <-nextMessage:
+				for client := range c.clients {
+					client <- s
+				}
+
+			case <-timeout(100):
+			}
 		}
 	}()
+	return nil
+}
+
+func (b *Broker) PullNextMessage(c *channel, name string) (chan *storage.LogEvent, error) {
+	leChan := make(chan *storage.LogEvent)
+	if len(c.clients) > 0 {
+		le, err := b.storage.GetNextUnreadMessage(name)
+		b.storage.LogEventIsRead(le)
+		if err == mgo.ErrNotFound {
+			return nil, nil
+		} else if err != nil {
+			return nil, err
+		} else {
+			go func() { leChan <- le }()
+		}
+	}
+	return leChan, nil
 }
 
 // This Broker method handles and HTTP request
 //
 func (b *Broker) EventHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO This should be done differently. In some middleware e.g.
-	w.Header().Set("Access-Control-Allow-Methods", "GET")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
@@ -160,10 +129,12 @@ func (b *Broker) EventHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	app := vars["app"]
 	log.Printf("A new listener appeared for channel %s", app)
-	c, ok := b.Channels[app]
+
+	c, ok := b.channels[app]
 	if !ok {
-		log.Printf("Channel %s not found, creating...", app)
-		c = b.OpenChannel(app)
+		log.Printf("Channel %s does not exist.", app)
+		http.Error(w, "Channel does not exist!", http.StatusInternalServerError)
+		return
 	}
 
 	// Make sure that the writer supports flushing.
@@ -176,20 +147,18 @@ func (b *Broker) EventHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create a new channel, over which the broker can
 	// send this client Messages.
-	messageChan := make(chan string)
+	messageChan := make(chan *storage.LogEvent)
 
 	// Add this client to the map of those that should
 	// receive updates
-	c.NewClients <- messageChan
+	c.newClients <- messageChan
 
 	// Listen to the closing of the http connection via the CloseNotifier
 	notify := w.(http.CloseNotifier).CloseNotify()
+	defer b.detachClient(c, messageChan)
 	go func() {
 		<-notify
-		// Remove this client from the map of attached Clients
-		// when `EventHandler` exits.
-		c.DefunctClients <- messageChan
-		log.Println("HTTP connection just closed.")
+		b.detachClient(c, messageChan)
 	}()
 
 	// Don't close the connection, instead loop until the
@@ -202,22 +171,41 @@ func (b *Broker) EventHandler(w http.ResponseWriter, r *http.Request) {
 			// Done
 			log.Println("Finished HTTP request at ", r.URL.Path)
 			return
-		case msg := <-messageChan:
-			// Write to the ResponseWriter, `w`.
-			fmt.Fprintf(w, "data: %s\n\n", msg)
+		case e := <-messageChan:
+			if len(e.Message) > 0 {
+				// Write to the ResponseWriter, `w`.
+				fmt.Fprintf(w, "data: %s\n\n", e.Message)
+				// log.Printf("Sending data %s", e.Message)
 
-			// Flush the response. This is only possible if
-			// the response supports streaming.
-			f.Flush()
+				// Flush the response. This is only possible if
+				// the response supports streaming.
+				f.Flush()
+			}
 		}
 	}
 
 	// Done.
-	log.Println("Finished HTTP request at ", r.URL.Path)
+	log.Printf("Finished HTTP request at %s", r.URL.Path)
 }
 
-func New() *Broker {
-	return &Broker{
-		make(map[string]*Channel),
+func (b *Broker) detachClient(c *channel, messageChan chan *storage.LogEvent) {
+	c.defunctClients <- messageChan
+	log.Println("Detached client.")
+}
+
+func New(s storage.Storage) *Broker {
+	if brokerInstance != nil {
+		return brokerInstance
 	}
+	brokerInstance = &Broker{make(map[string]*channel), s}
+	return brokerInstance
+}
+
+func timeout(seconds time.Duration) chan bool {
+	t := make(chan bool)
+	go func() {
+		time.Sleep(seconds * time.Millisecond)
+		t <- true
+	}()
+	return t
 }
