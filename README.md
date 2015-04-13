@@ -1,23 +1,85 @@
 # ory-am/gitdeploy
 
-## Run
+[Gitdeploy.io](http://gitdeploy.io), the first 1-click deployment for your apps out there.
+
+[Gitdeploy.io](http://gitdeploy.io) is built on top of the next-gen PaaS [Flynn](http://flynn.io).
+
+Try it yourself: 
+[![Deploy gitdeploy-go-example via gitdeploy.io](https://img.shields.io/badge/gitdeploy.io-deploy%20gitdeploy--go--example/master-green.svg)](http://localhost:8124/deploy?repository=https%3A%2F%2Fgithub.com%2Fory-am%2Fgitdeploy-go-example.git)
+
+## Deploy your application
+
+**Preamble**:
+* The `.gitdeploy.yml` file configures [Gitdeploy.io](http://gitdeploy.io) and must be saved to the projects root directory.
+* Although your app does not have to be [12factor](http://12factor.net/) compliant, the web process needs to listen on
+the `$PORT` and `$HOST` environment variables:
+[Example 1](https://github.com/ory-am/gitdeploy-go-example/blob/master/main.go#L22-L23)
+[Example 2](https://github.com/ory-am/gitdeploy-go-example/blob/master/main.go#L124-L125).  
+
+### [Golang](http://golang.org/)
+
+See a Go example in action: 
+[![Deploy gitdeploy-go-example via gitdeploy.io](https://img.shields.io/badge/gitdeploy.io-deploy%20gitdeploy--go--example/master-green.svg)](http://localhost:8124/deploy?repository=https%3A%2F%2Fgithub.com%2Fory-am%2Fgitdeploy-go-example.git)
+
+Flynn uses Heroku-like buildpacks to deploy Go applications: [Deploy Go](https://flynn.io/docs/how-to-deploy-go)  
+To deploy your app via [Gitdeploy.io](http://gitdeploy.io), you'll need a `.gitdeploy.yml` file which combines
+`Procfile` and `.godir`.
+
+**Use [Godep](https://github.com/tools/godep):** As suggested in the [deploy Go on Fylnn](https://flynn.io/docs/how-to-deploy-go) docs you *should* use
+[Godep](https://github.com/tools/godep) for your dependencies to significantly reduce deployment time.
+
+```yml
+# .gitdeploy.yml
+
+# Learn more about Procfile: https://devcenter.heroku.com/articles/procfile
+Procfile:
+    web: myexample
+
+# Learn more about .godir: https://github.com/kr/heroku-buildpack-go#godir-and-godeps
+Godir:
+    github.com/user/myexample
+```
+
+### 
+
+## Contribute
+
+Windows / Mac OSX
+
+* [Virtualbox](https://www.virtualbox.org/)
+* [Boot2Docker](http://boot2docker.io/)
 
 ```
-VBoxManage modifyvm "boot2docker-vm" --natpf1 "guestpostgresql,tcp,127.0.0.1,5432,,5432"
-docker run --name gitdeploy-postgres -e POSTGRES_USER=gitdeploy -e POSTGRES_PASSWORD=changeme -d -p 5432:5432 postgres
+> boot2docker init
+> VBoxManage modifyvm "boot2docker-vm" --natpf1 "guestmongodb,tcp,127.0.0.1,27017,,27017"
+> boot2docker start
+> boot2docker ssh
+> docker run -d -p 27017:27017 dockerfile/mongodb
 ```
 
-tbd
+Linux
+
+* [Docker](https://www.docker.com/)
+
+```
+$ docker run -d -p 27017:27017 dockerfile/mongodb
+```
+
+---
+
+**TBD**
+```
+git clone ...
+```
 
 ### Configuration
 
-tbd
+TBD
 
-## .gitdeploy.yml
+### Things to note
 
-tbd
+**Why we're using MongoDB**
 
-```
-process:
-    web: node server.js
-```
+* Short lifetime of database items
+* No 100% consistency needed (neither logs nor apps)
+* Many writes to logs
