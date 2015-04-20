@@ -129,9 +129,11 @@ func runJobs(w http.ResponseWriter, em *event.EventManager, dr *deployRequest, a
 	sseBroker.OpenChannel(app)
 	sseBroker.Start(app)
 	defer func() {
+		// Give the client the chance to read the output...
 		time.Sleep(2 * time.Minute)
 		sseBroker.CloseChannel(app)
 	}()
+
 	em.Trigger("app.created", gde.New(app, app))
 
 	destination, err := job.Clone(em, app, dr.Repository)
