@@ -157,8 +157,8 @@ func runJobs(w http.ResponseWriter, em *event.EventManager, dr *deployRequest, a
 	log.Println("Deployment successful.")
 	em.Trigger("app.deployed", gde.New(app, fmt.Sprintf("%s.ew2.flynnhub.com", app)))
 
-    // The client has one minute to receive the output before the channel gets
-    time.Sleep(2 * time.Minute)
+	// The client has one minute to receive the output before the channel gets
+	time.Sleep(2 * time.Minute)
 }
 
 // Set the different CORS headers required for CORS request
