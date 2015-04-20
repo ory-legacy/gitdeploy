@@ -22,6 +22,7 @@ func KillAppsOnHitList(store storage.Storage) {
                     e.Stdout = os.Stdout
                     if err = e.Run(); err != nil {
                         log.Printf("An error occured while cleanup: %s", err.Error())
+                        return
                     }
                     store.KillApp(app)
                 }()

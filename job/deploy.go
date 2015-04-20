@@ -15,6 +15,10 @@ func Deploy(em *event.EventManager, app string, sourcePath string) error {
     if err := runFlynnKeyAdd(em, eventName, app, sourcePath); err != nil {
         return err
     }
+    // Push app to flynn
+    if err := runFlynnUpdate(em, eventName, app, sourcePath); err != nil {
+        return err
+    }
     // Create app container on flynn
     if err := runFlynnCreateApp(em, eventName, app, sourcePath); err != nil {
         return err
@@ -38,6 +42,17 @@ func runFlynnKeyAdd(em *event.EventManager, eventName string, app string, source
 func runFlynnCreateApp(em *event.EventManager, eventName string, app string, sourcePath string) error {
     em.Trigger(eventName, gde.New(app, "Creating app..."))
     if err := run(em, eventName, app, sourcePath, "flynn", "create", "-y", app); err != nil {
+        return err
+    }
+    return nil
+}
+
+func runFlynnUpdate(em *event.EventManager, eventName string, app string, sourcePath string) error {
+    em.Trigger(eventName, gde.New(app, "Pushing app..."))
+    if err := run(em, eventName, app, sourcePath, "git", "add", "*"); err != nil {
+        return err
+    }
+    if err := run(em, eventName, app, sourcePath, "git", "commit", "--no-edit", "-m", `"gitdeploy"`); err != nil {
         return err
     }
     return nil
