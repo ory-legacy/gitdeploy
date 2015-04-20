@@ -128,37 +128,31 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 func runJobs(w http.ResponseWriter, em *event.EventManager, dr *deployRequest, app string, sseBroker *sse.Broker) {
 	sseBroker.OpenChannel(app)
 	sseBroker.Start(app)
-	defer sseBroker.CloseChannel(app)
+	defer func() {
+		time.Sleep(2 * time.Minute)
+		sseBroker.CloseChannel(app)
+	}()
 	em.Trigger("app.created", gde.New(app, app))
 
 	destination, err := job.Clone(em, app, dr.Repository)
 	if err != nil {
 		responseError(w, http.StatusInternalServerError, err.Error())
 		log.Printf("Error in job.clone %s: %s", app, err.Error())
-		// The client has one minute to receive the error output before the channel gets closed
-		time.Sleep(60 * time.Second)
 		return
 	}
 
 	if err = job.Parse(em, app, destination); err != nil {
 		log.Printf("Error in job.parse %s: %s", app, err.Error())
-		// The client has one minute to receive the error output before the channel gets closed
-		time.Sleep(60 * time.Second)
 		return
 	}
 
 	if err = job.Deploy(em, app, destination); err != nil {
 		log.Printf("Error in job.deploy %s: %s", app, err.Error())
-		// The client has one minute to receive the error output before the channel gets closed
-		time.Sleep(60 * time.Second)
 		return
 	}
 
 	log.Println("Deployment successful.")
 	em.Trigger("app.deployed", gde.New(app, fmt.Sprintf("%s.ew2.flynnhub.com", app)))
-
-	// The client has one minute to receive the output before the channel gets
-	time.Sleep(2 * time.Minute)
 }
 
 // Set the different CORS headers required for CORS request
