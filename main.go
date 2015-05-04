@@ -19,6 +19,9 @@ import (
 	"os/exec"
 	"regexp"
 	"time"
+	gorillasession "github.com/gorilla/sessions"
+	"gopkg.in/mgo.v2"
+	"github.com/ory-am/gitdeploy/storage"
 )
 
 var (
@@ -32,7 +35,10 @@ var (
 	envAppTtl = env.Getenv("APP_TTL", "5m")
 
 	// Configuration for CORS
-	corsAllowOrigin = env.Getenv("CORS_ALLOW_ORIGIN", "*")
+	corsAllowOrigin = env.Getenv("CORS_ALLOW_ORIGIN", "http://localhost:9000")
+
+	sessionStore = gorillasession.NewCookieStore([]byte(env.Getenv("SESSION_SECRET", "changme")))
+	sessionName = "gitdeploy"
 
 	// MongoDB
 	envMongoPath = env.Getenv("MONGODB", "mongodb://localhost:27017/gitdeploy")
@@ -70,6 +76,7 @@ func main() {
 	r.HandleFunc("/deployments", deployWrapperAction(sseBroker, eventManager, storage)).Methods("POST")
 	r.HandleFunc("/deployments", setCORSHeaders).Methods("OPTIONS")
 	r.HandleFunc("/deployments/{app:.+}/events", eventWrapperAction(sseBroker)).Methods("GET")
+	r.HandleFunc("/apps/{app:.+}", getAppHandler(sseBroker)).Methods("GET")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./app/")))
 	http.Handle("/", r)
 
@@ -78,6 +85,34 @@ func main() {
 	listen := fmt.Sprintf("%s:%s", host, port)
 	log.Printf("Listening on %s", listen)
 	log.Fatal(http.ListenAndServe(listen, nil))
+}
+
+func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		setCORSHeaders(w, r)
+		vars := mux.Vars(r)
+		id := vars["app"]
+		app, err := store.GetApp(id)
+		if err == mgo.ErrNotFound {
+			responseError(w, http.StatusNotFound, "App could not be found.")
+			return
+		} else if err != nil {
+			responseError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		logs, err := job.GetLogs(app)
+		if err != nil {
+			responseError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		responseSuccess(w, struct{
+			*storage.App
+			Logs string `json:"logs"`
+		}{
+			app,
+			logs,
+		})
+	}
 }
 
 func eventWrapperAction(sseBroker *sse.Broker) func(w http.ResponseWriter, r *http.Request) {
@@ -95,6 +130,22 @@ func deployWrapperAction(sseBroker *sse.Broker, em *event.EventManager, store *m
 }
 
 func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker, em *event.EventManager, store *mongo.MongoStorage) {
+	session, err := sessionStore.Get(r, sessionName)
+	if err != nil {
+		responseError(w, http.StatusBadRequest, "Please delete your cookies.")
+		return
+	}
+
+	// Check if the user is currently deploying an application and switch to that one.
+	if v, ok := session.Values["currentDeploymentID"]; ok {
+		app, err := store.GetApp(v)
+		if err != nil {
+			responseError(w, http.StatusInternalServerError, "Please delete your cookies.")
+			return
+		}
+		responseSuccess(w, app)
+	}
+
 	// Parse body
 	dr := new(deployRequest)
 	decoder := json.NewDecoder(r.Body)
@@ -119,18 +170,28 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+		session.Values["currentDeploymentID"] = appEntity.ID
+		if err := session.Save(r, w); err != nil {
+			responseError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		responseSuccess(w, appEntity)
 	}
 
-	go runJobs(w, em, dr, app, sseBroker)
+	go runJobs(w, r, em, dr, app, sseBroker, session)
 }
 
-func runJobs(w http.ResponseWriter, em *event.EventManager, dr *deployRequest, app string, sseBroker *sse.Broker) {
+func runJobs(w http.ResponseWriter, r *http.Request, em *event.EventManager, dr *deployRequest, app string, sseBroker *sse.Broker, session gorillasession.Session) {
 	sseBroker.OpenChannel(app)
 	sseBroker.Start(app)
 	defer func() {
 		// Give the client the chance to read the output...
 		time.Sleep(2 * time.Minute)
+		delete(session.Values, "currentDeploymentID")
+		if err := session.Save(r, w); err != nil {
+			responseError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		sseBroker.CloseChannel(app)
 	}()
 
@@ -153,14 +214,21 @@ func runJobs(w http.ResponseWriter, em *event.EventManager, dr *deployRequest, a
 		return
 	}
 
+	cluster, err := job.GetCluster(em, app, destination)
+	if err != nil {
+		log.Printf("Error in job.deploy %s: %s", app, err.Error())
+		return
+	}
+
 	log.Println("Deployment successful.")
-	em.Trigger("app.deployed", gde.New(app, fmt.Sprintf("%s.ew2.flynnhub.com", app)))
+	em.Trigger("app.deployed", gde.New(app, fmt.Sprintf("%s.%s", app, cluster)))
 }
 
 // Set the different CORS headers required for CORS request
 func setCORSHeaders(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Access-Control-Allow-Methods", "POST")
+    w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Origin", corsAllowOrigin)
+    w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 }
 

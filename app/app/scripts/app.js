@@ -17,17 +17,28 @@ angular
         'ngSanitize',
         'ngTouch'
     ])
-    .config(function ($routeProvider) {
-        $routeProvider
-            .when('/', {
-                templateUrl: 'views/landing.html',
-                controller: 'LandingCtrl'
-            })
-            .when('/deploy', {
-                templateUrl: 'views/deploy.html',
-                controller: 'DeployCtrl'
-            })
-            .otherwise({
-                redirectTo: '/'
-            });
-    });
+    .config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
+        $routeProvider.when('/', {
+            templateUrl: 'views/landing.html',
+            controller: 'LandingCtrl'
+        }).when('/deploy', {
+            templateUrl: 'views/deploy.html',
+            controller: 'DeployCtrl'
+        }).when('/dashboard', {
+            templateUrl: 'views/dashboard.html',
+            controller: 'DashboardCtrl'
+        }).when('/account/create', {
+            templateUrl: 'views/accountcreate.html',
+            controller: 'AccountCreateCtrl'
+        }).when('/connect', {
+            templateUrl: 'views/connect.html',
+            controller: 'ConnectCtrl'
+        }).when('/connect/callback', {
+            templateUrl: 'views/githubcallback.html',
+            controller: 'GithubCallbackCtrl'
+        }).otherwise({
+            redirectTo: '/'
+        });
+        $locationProvider.html5Mode(true);
+    }]);
+

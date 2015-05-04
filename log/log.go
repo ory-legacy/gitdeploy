@@ -23,5 +23,6 @@ func (l *Listener) AttachAggregate(em *event.EventManager) {
 	em.AttachListener("jobs.clone", l)
 	em.AttachListener("jobs.parse", l)
 	em.AttachListener("jobs.deploy", l)
+	em.AttachListener("jobs.cluster", l)
 	em.AttachListener("app.deployed", l)
 }

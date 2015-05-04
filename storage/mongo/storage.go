@@ -16,7 +16,7 @@ type MongoStorage struct {
 }
 
 const (
-	appCollection         = "app"
+	appCollection = "app"
 	appEventLogCollection = "appEvents"
 )
 
@@ -53,6 +53,7 @@ func (s *MongoStorage) AttachAggregate(em *event.EventManager) {
 	em.AttachListener("jobs.parse", s)
 	em.AttachListener("app.created", s)
 	em.AttachListener("app.deployed", s)
+	em.AttachListener("jobs.cluster", s)
 }
 
 func (s *MongoStorage) AddApp(app string, ttl time.Time) (*storage.App, error) {
@@ -76,6 +77,11 @@ func (s *MongoStorage) AddLogEvent(app, message string) (*storage.LogEvent, erro
 		Unread:    true,
 	}
 	return e, c.Insert(e)
+}
+
+func (s *MongoStorage) GetApp(id string) (app *storage.App, err error) {
+	c := s.db.C(appEventLogCollection)
+	return app, c.Find(bson.M{"app":    id        }).One(&app)
 }
 
 func (s *MongoStorage) GetNextUnreadMessage(app string) (*storage.LogEvent, error) {

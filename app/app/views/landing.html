@@ -1,146 +1,150 @@
-<div id="headerwrap" ng-controller="homeCtrl">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-8 col-lg-offset-2">
-        <h1>gitdeploy.io</h1>
-        <h3>
-          <img src="https://img.shields.io/badge/gitdeploy.io-deploy%20myapp/master-green.svg"
-               alt="gitdeploy.io">
-        </h3>
-        <h3>
-          Install and compare apps with one click.
-        </h3>
-        <h5>Gitdeploy uses flynn to deploy any app with just one click.</h5>
-        <h5>No CLIs, no registration, free for Open Source.</h5>
-        <br>
-      </div>
-      <div class="col-lg-8 col-lg-offset-2 himg">
-        <form ng-submit="createShield($event);">
-          <div class="form-group">
-            <label class="sr-only" for="repositoryUrl">GitHub repository</label>
+<div id="headerwrap">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2">
+                <h1>gitdeploy.io</h1>
 
-            <div class="input-group">
-              <div class="input-group-addon"><span class="fa fa-github"></span></div>
-              <input required pattern="(http|https)\:\/\/github\.com\/[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-]+\.git"
-                     ng-model="repository.url" aria-describedby="helpBlock" type="text" length="30"
-                     class="form-control input-lg" id="repositoryUrl"
-                     placeholder="https://github.com/your/repository.git">
+                <h3>
+                    <img src="https://img.shields.io/badge/gitdeploy.io-deploy%20myapp/master-green.svg"
+                         alt="gitdeploy.io">
+                </h3>
+
+                <h3>
+                    Install and compare apps with one click.
+                </h3>
+                <h5>Gitdeploy uses flynn to deploy any app with just one click.</h5>
+                <h5>No CLIs, no registration, free for Open Source.</h5>
+                <br>
             </div>
-          </div>
-          <button type="submit" class="btn btn-lg btn-block btn-success">Add your app</button>
-          <span id="helpBlock" class="help-block">Creates a badge for you to add to your README.md</span>
-          <a ng-href="#" ng-click="showIntegration($event);" ng-show="repository.badge">
-            <img ng-src="{{ repository.badge }}" alt="gitdeploy.io">
-          </a>
-        </form>
-      </div>
-    </div>
-    <!-- /row -->
-  </div>
-  <!-- /container -->
+            <div class="col-lg-8 col-lg-offset-2 himg">
+                <form ng-submit="createShield($event);">
+                    <div class="form-group">
+                        <label class="sr-only" for="repositoryUrl">GitHub repository</label>
 
-  <div class="modal fade text-left" id="shieldModal">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-            aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title">Your shield is ready!</h4>
+                        <div class="input-group">
+                            <div class="input-group-addon"><span class="fa fa-github"></span></div>
+                            <input required pattern="(http|https)\:\/\/github\.com\/[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-]+\.git"
+                                   ng-model="repository.url" aria-describedby="helpBlock" type="text" length="30"
+                                   class="form-control input-lg" id="repositoryUrl"
+                                   placeholder="https://github.com/your/repository.git">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-lg btn-block btn-success">Add your app</button>
+                    <span id="helpBlock" class="help-block">Creates a badge for you to add to your README.md</span>
+                    <a ng-href="#" ng-click="showIntegration($event);" ng-show="repository.badge">
+                        <img ng-src="{{ repository.badge }}" alt="gitdeploy.io">
+                    </a>
+                </form>
+            </div>
         </div>
-        <div class="modal-body">
-          <p>Copy the code into your clipboard and put it in your repositories README.md</p>
-          <pre><code>[![Deploy {{repository.name}} via gitdeploy.io]({{ repository.badge }})]({{ repository.deployUrl }})</code></pre>
-        </div>
-        <div class="modal-footer">
-          <a class="btn btn-default" ng-href="{{repository.deployUrl}}">Deploy now</a>
-          <a class="btn btn-success" ng-href="{{repository.readmeUrl}}">Update README.md</a>
-        </div>
-      </div>
-      <!-- /.modal-content -->
+        <!-- /row -->
     </div>
-    <!-- /.modal-dialog -->
-  </div>
-  <!-- /.modal -->
+    <!-- /container -->
+
+    <div class="modal fade text-left" id="shieldModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Your shield is ready!</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Copy the code into your clipboard and put it in your repositories README.md</p>
+                    <pre><code>[![Deploy {{repository.name}} via gitdeploy.io]({{ repository.badge }})]({{
+                        repository.deployUrl }})</code></pre>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-default" ng-href="{{repository.deployUrl}}">Deploy now</a>
+                    <a class="btn btn-success" ng-href="{{repository.readmeUrl}}">Update README.md</a>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
 </div><!-- /headerwrap -->
 
-
 <div id="service">
-  <div class="container">
-    <div class="row centered">
-      <div class="col-md-12">
-        <h2>DOCUMENTATION</h2>
+    <div class="container">
+        <div class="row centered">
+            <div class="col-md-12">
+                <h2>DOCUMENTATION</h2>
 <pre class="text-left"><code class="yaml"># This is the .gitignore.yml file. It must be placed in your
-  # repositories root directory.
+    # repositories root directory.
 
 
-  # The process section generates or overshadows the Procfile
-  # Learn more about Procfiles: https://devcenter.heroku.com/articles/procfile
-  Process:
-  - web: node server.js
-  # - web: some-binary
+    # The process section generates or overshadows the Procfile
+    # Learn more about Procfiles: https://devcenter.heroku.com/articles/procfile
+    Process:
+    - web: node server.js
+    # - web: some-binary
 
-  # The Godir section generates or overshadows the .godir file
-  # Only necessary when deploying Go
-  Godir: github.com/some/repository
+    # The Godir section generates or overshadows the .godir file
+    # Only necessary when deploying Go
+    Godir: github.com/some/repository
 
-  Backends:
-  # Currently, only PostgreSQL is supported
-  - postgresql:
-  # Define to which environment variables the database information
-  # will be bound to.
-  - port: PG_PORT # Binds the database port to $PG_PORT
-  - host: PG_HOST # Bind the database hostname to $PG_HOST
-  - path: PG_PATH
-  - username: PG_USERNAME
-  - password: PG_PASSWORD
+    Backends:
+    # Currently, only PostgreSQL is supported
+    - postgresql:
+    # Define to which environment variables the database information
+    # will be bound to.
+    - port: PG_PORT # Binds the database port to $PG_PORT
+    - host: PG_HOST # Bind the database hostname to $PG_HOST
+    - path: PG_PATH
+    - username: PG_USERNAME
+    - password: PG_PASSWORD
 </code></pre>
-      </div>
+            </div>
+        </div>
+        <div class="row centered">
+            <div class="col-md-4">
+                <i class="fa fa-clock-o"></i>
+                <h4>SIMPLE</h4>
+
+                <p>
+                    Deploy apps without registration.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <i class="fa fa-cloud"></i>
+                <h4>FUTURE READY</h4>
+
+                <p>
+                    We're using <a href="http://flynn.io">Flynn</a> for deployment. As Flynn's ecosystem grows, so will
+                    our features.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <i class="fa fa-github"></i>
+                <h4>WE <span class="fa fa-heart"></span> OPEN SOURCE</h4>
+
+                <p>
+                    gitdeploy.io is free of charge for open source projects!
+                </p>
+            </div>
+        </div>
     </div>
-    <div class="row centered">
-      <div class="col-md-4">
-        <i class="fa fa-clock-o"></i>
-        <h4>SIMPLE</h4>
-
-        <p>
-          Deploy apps without registration.
-        </p>
-      </div>
-      <div class="col-md-4">
-        <i class="fa fa-cloud"></i>
-        <h4>FUTURE READY</h4>
-
-        <p>
-          We're using <a href="http://flynn.io">Flynn</a> for deployment. As Flynn's ecosystem grows, so will
-          our features.
-        </p>
-      </div>
-      <div class="col-md-4">
-        <i class="fa fa-github"></i>
-        <h4>WE <span class="fa fa-heart"></span> OPEN SOURCE</h4>
-
-        <p>
-          gitdeploy.io is free of charge for open source projects!
-        </p>
-      </div>
-    </div>
-  </div>
-  <! --/container -->
+    <! --/container -->
 </div><! --/service -->
 
 <div id="twrap">
-  <div id="twrapback"></div>
-  <div class="container centered">
-    <div class="row">
-      <div class="col-lg-8 col-lg-offset-2">
-        <i class="fa fa-exclamation"></i>
-        <h4>GITDEPLOY IS A PREVIEW</h4>
-        <p>
-          Both Flynn as well as gitdeploy.io are still in heavy development.<br>
-          If you have trouble running your app, check out the Flynn documentation or create an issue on <a href="https://github.com/ory-am/gitdeploy/issues">GitHub</a><br>
-        </p>
-      </div>
+    <div id="twrapback"></div>
+    <div class="container centered">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2">
+                <i class="fa fa-exclamation"></i>
+                <h4>GITDEPLOY IS A PREVIEW</h4>
+
+                <p>
+                    Both Flynn as well as gitdeploy.io are still in heavy development.<br>
+                    If you have trouble running your app, check out the Flynn documentation or create an issue on <a
+                        href="https://github.com/ory-am/gitdeploy/issues">GitHub</a><br>
+                </p>
+            </div>
+        </div>
+        <! --/row -->
     </div>
-    <! --/row -->
-  </div>
-  <! --/container -->
+    <! --/container -->
 </div><! --/twrap -->

@@ -1,7 +1,9 @@
 {
   "name": "gitdeploy",
   "version": "0.0.0",
-  "dependencies": {},
+  "dependencies": {
+    "connect-modrewrite": "^0.8.1"
+  },
   "repository": {},
   "devDependencies": {
     "grunt": "^0.4.5",

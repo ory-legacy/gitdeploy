@@ -2,21 +2,17 @@
 
 describe('Controller: DeployCtrl', function () {
 
-  // load the controller's module
-  beforeEach(module('gitdeployApp'));
+    // load the controller's module
+    beforeEach(module('gitdeployApp'));
 
-  var DeployCtrl,
-    scope;
+    var DeployCtrl,
+        scope;
 
-  // Initialize the controller and a mock scope
-  beforeEach(inject(function ($controller, $rootScope) {
-    scope = $rootScope.$new();
-    DeployCtrl = $controller('DeployCtrl', {
-      $scope: scope
-    });
-  }));
-
-  it('should attach a list of awesomeThings to the scope', function () {
-    expect(scope.awesomeThings.length).toBe(3);
-  });
+    // Initialize the controller and a mock scope
+    beforeEach(inject(function ($controller, $rootScope) {
+        scope = $rootScope.$new();
+        DeployCtrl = $controller('DeployCtrl', {
+            $scope: scope
+        });
+    }));
 });

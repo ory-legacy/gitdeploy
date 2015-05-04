@@ -4,6 +4,7 @@ import "time"
 
 type Storage interface {
 	AddApp(app string, ttl time.Time) (*App, error)
+	GetApp(id string) (*App, error)
 	GetAppKillList() ([]*App, error)
 	KillApp(app *App) error
 	AddLogEvent(app, message string) (*LogEvent, error)

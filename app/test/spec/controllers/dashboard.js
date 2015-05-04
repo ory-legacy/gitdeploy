@@ -1,17 +1,17 @@
 'use strict';
 
-describe('Controller: NavCtrl', function () {
+describe('Controller: DashboardCtrl', function () {
 
     // load the controller's module
     beforeEach(module('gitdeployApp'));
 
-    var NavCtrl,
+    var DashboardCtrl,
         scope;
 
     // Initialize the controller and a mock scope
     beforeEach(inject(function ($controller, $rootScope) {
         scope = $rootScope.$new();
-        NavCtrl = $controller('NavCtrl', {
+        DashboardCtrl = $controller('DashboardCtrl', {
             $scope: scope
         });
     }));

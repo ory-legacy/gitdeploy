@@ -1,4 +1,5 @@
 'use strict';
+/* global $ */
 
 /**
  * @ngdoc function
@@ -23,22 +24,19 @@ angular.module('gitdeployApp')
 
                 // Don't change the order!
                 $scope.repository.name = name;
-                name = name.replace(/\-/g, '--') + "/master";
+                name = name.replace(/\-/g, '--') + '/master';
                 // end
 
-                $scope.repository.badge = "https://img.shields.io/badge/gitdeploy.io-deploy%20" + (name) + "-green.svg";
-                $scope.repository.deployUrl =
-                    window.location.protocol + '//' + window.location.host + '/deploy?repository=' + encodeURIComponent($scope.repository.url);
+                $scope.repository.badge = 'https://img.shields.io/badge/gitdeploy.io-deploy%20' + (name) + '-green.svg';
+                $scope.repository.deployUrl = window.location.protocol + '//' + window.location.host + '/deploy?repository=' + encodeURIComponent($scope.repository.url);
                 $scope.repository.showBadge = true;
-                $scope.repository.deployUrl =
-                    window.location.protocol + "//" + window.location.host + "/deploy?repository="
-                        + encodeURIComponent($scope.repository.url);
+                $scope.repository.deployUrl = window.location.protocol + '//' + window.location.host + '/deploy?repository=' + encodeURIComponent($scope.repository.url);
                 return false;
             };
             $scope.showIntegration = function showIntegration($event) {
                 $event.stopPropagation();
                 $('#shieldModal').modal('show');
                 return false;
-            }
+            };
         }
     ]);
