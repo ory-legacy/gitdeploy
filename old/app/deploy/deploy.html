@@ -1,0 +1,45 @@
+<div ng-show="error" class="alert alert-danger" role="alert">
+    <div class="row">
+        <div class="col-xs-12">
+            <h3>
+                <span class="fa fa-exclamation-triangle"></span>
+                There was an error!
+            </h3>
+            <hr>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            {( error )}<br>
+            <a href="/">Go back</a> or create an issue on our <a href="https://github.com/ory-am/gitdeploy/issues">GitHub</a>.
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-xs-12">
+            <a ng-href="{( retryUrl )}" class="btn btn-default" ng-show="error" target="_self">Retry</a>
+        </div>
+    </div>
+</div>
+<div ng-hide="error">
+    <p>
+        I'm deploying your app. This might take a minute or two.<br>
+        If problems occur, copy the logs and create a new issue
+        on our <a href="https://github.com/ory-am/gitdeploy/issues">GitHub</a>
+    </p>
+    <pre><code><div class="text-center" ng-hide="logMessages"><i class="fa fa-4x fa-spinner fa-pulse"></i></div>{( logMessages )}</code></pre>
+</div>
+<div class="panel panel-default" ng-show="deployedUrl">
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-xs-12">
+                Your app has been deployed successfully! It is going to be available at <a ng-href="{(deployedUrl)}">{(deployedUrl)}</a> for <strong>5 Minutes</strong>.
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <a ng-href="{( deployedUrl )}" ng-show="deployedUrl" class="btn btn-success" target="_blank">See the app in action!</a>
+            </div>
+        </div>
+    </div>
+</div>

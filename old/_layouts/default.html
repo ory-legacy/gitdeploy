@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>
+<html lang="en" ng-app="gdApp" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>
+<html lang="en" ng-app="gdApp" class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>
+<html lang="en" ng-app="gdApp" class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html lang="en" ng-app="gdApp" class="no-js"> <!--<![endif]-->
+    {% include head.html %}
+
+    <body>
+        {% include nav.html %}
+
+        <!--[if lt IE 10]>
+        <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade
+            your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+            {{ content }}
+
+        {% include footer.html %}
+        {% include js.html %}
+    </body>
+</html>
