@@ -1,14 +1,7 @@
 package job
 
 import (
-	"fmt"
-	"github.com/ory-am/event"
-	gde "github.com/ory-am/gitdeploy/event"
-	"os"
 	"os/exec"
-	"runtime"
-	"strings"
-	"github.com/go-errors/errors"
 )
 
 func GetLogs(app string) (string, error) {

@@ -2,13 +2,11 @@ package job
 
 import (
 	"fmt"
+	"github.com/go-errors/errors"
 	"github.com/ory-am/event"
 	gde "github.com/ory-am/gitdeploy/event"
-	"os"
 	"os/exec"
-	"runtime"
 	"strings"
-	"github.com/go-errors/errors"
 )
 
 // Clone runs the "git clone" job.

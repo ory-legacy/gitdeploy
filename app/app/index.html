@@ -1,85 +1,85 @@
 <!doctype html>
 <html class="no-js">
 <head>
-    <meta charset="utf-8">
-    <base href="/">
-    <title>Gitdeploy.io</title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width">
-    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
-    <!-- build:css(.) styles/vendor.css -->
-    <!-- bower:css -->
-    <link rel="stylesheet" href="bower_components/components-font-awesome/css/font-awesome.css" />
-    <!-- endbower -->
-    <!-- endbuild -->
-    <!-- build:css(.tmp) styles/main.css -->
-    <link rel="stylesheet" href="styles/main.css">
-    <!-- endbuild -->
+  <meta charset="utf-8">
+  <base href="/">
+  <title>Gitdeploy.io</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width">
+  <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+  <!-- build:css(.) styles/vendor.css -->
+  <!-- bower:css -->
+  <link rel="stylesheet" href="bower_components/components-font-awesome/css/font-awesome.css"/>
+  <!-- endbower -->
+  <!-- endbuild -->
+  <!-- build:css(.tmp) styles/main.css -->
+  <link rel="stylesheet" href="styles/main.css">
+  <!-- endbuild -->
 </head>
 <body ng-app="gitdeployApp">
 
 <!-- Fixed navbar -->
 <div class="navbar navbar-default navbar-fixed-top" ng-controller="NavCtrl" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" target="_self" href="/">Gitdeploy.io
-                <small><sup>preview</sup></small>
-            </a>
-        </div>
-        <div class="navbar-collapse collapse navbar-right">
-            <ul class="nav navbar-nav">
-                <li><a href="/">HOME</a></li>
-                <li><a href="https://github.com/ory-am/gitdeploy"><span class="fa fa-github fa-2x"></span></a></li>
-            </ul>
-        </div>
-        <!--/.nav-collapse -->
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" target="_self" href="/">Gitdeploy.io
+        <small><sup>preview</sup></small>
+      </a>
     </div>
+    <div class="navbar-collapse collapse navbar-right">
+      <ul class="nav navbar-nav">
+        <li><a href="/">HOME</a></li>
+        <li><a href="https://github.com/ory-am/gitdeploy"><span class="fa fa-github fa-2x"></span></a></li>
+      </ul>
+    </div>
+    <!--/.nav-collapse -->
+  </div>
 </div>
 
 <!--[if lt IE 9]>
 <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade
-    your browser</a> to improve your experience.</p>
+  your browser</a> to improve your experience.</p>
 <![endif]-->
 
 <div ng-view=""></div>
 
 <div id="footerwrap">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="text-center">
-                    <h5>Other Things</h5>
-                    <h4>That Might Interest You</h4>
-                </div>
-                <div class="hline-w"></div>
-                <p class="text-center">
-                    <a href="https://github.com/ory-am/gitdeploy" class="btn-social btn-outline"><i class="fa fa-github"></i></a>
-                    <a href="https://twitter.com/_aeneasr" class="btn-social btn-outline"><i class="fa fa-twitter"></i></a>
-                </p>
-            </div>
-            <div class="col-lg-6">
-                <div class="text-center">
-                    <h5>All Your Base</h5>
-                    <h4>Are Belong To Us</h4>
-                </div>
-                <div class="hline-w"></div>
-                <p class="text-center">
-                    Ory GmbH<br>
-                    Belfortstraße 14<br>
-                    81667 Munich<br>
-                    Germany<br>
-                </p>
-            </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="text-center">
+          <h5>Other Things</h5>
+          <h4>That Might Interest You</h4>
         </div>
-        <! --/row -->
+        <div class="hline-w"></div>
+        <p class="text-center">
+          <a href="https://github.com/ory-am/gitdeploy" class="btn-social btn-outline"><i class="fa fa-github"></i></a>
+          <a href="https://twitter.com/_aeneasr" class="btn-social btn-outline"><i class="fa fa-twitter"></i></a>
+        </p>
+      </div>
+      <div class="col-lg-6">
+        <div class="text-center">
+          <h5>All Your Base</h5>
+          <h4>Are Belong To Us</h4>
+        </div>
+        <div class="hline-w"></div>
+        <p class="text-center">
+          Ory GmbH<br>
+          Belfortstraße 14<br>
+          81667 Munich<br>
+          Germany<br>
+        </p>
+      </div>
     </div>
-    <! --/container -->
+    <! --/row -->
+  </div>
+  <! --/container -->
 </div>
 <! --/footerwrap -->
 
@@ -95,6 +95,7 @@
 
     ga('create', 'UA-XXXXX-X');
     ga('send', 'pageview');
+
 </script>
 
 <!-- build:js(.) scripts/vendor.js -->

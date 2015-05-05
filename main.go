@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	gorillasession "github.com/gorilla/sessions"
 	"github.com/ory-am/common/env"
 	"github.com/ory-am/common/mgopath"
 	"github.com/ory-am/event"
@@ -12,35 +13,34 @@ import (
 	"github.com/ory-am/gitdeploy/job"
 	gdLog "github.com/ory-am/gitdeploy/log"
 	"github.com/ory-am/gitdeploy/sse"
+	"github.com/ory-am/gitdeploy/storage"
 	"github.com/ory-am/gitdeploy/storage/mongo"
 	"github.com/ory-am/google-json-style-response/responder"
+	"gopkg.in/mgo.v2"
 	"log"
 	"net/http"
 	"os/exec"
 	"regexp"
 	"time"
-	gorillasession "github.com/gorilla/sessions"
-	"gopkg.in/mgo.v2"
-	"github.com/ory-am/gitdeploy/storage"
 )
 
 var (
-	// API Version
+// API Version
 	ApiVersion = "1.0"
 
-	// Generic configuration
+// Generic configuration
 	host = env.Getenv("HOST", "")
 	port = env.Getenv("PORT", "7654")
 
 	envAppTtl = env.Getenv("APP_TTL", "5m")
 
-	// Configuration for CORS
+// Configuration for CORS
 	corsAllowOrigin = env.Getenv("CORS_ALLOW_ORIGIN", "http://localhost:9000")
 
 	sessionStore = gorillasession.NewCookieStore([]byte(env.Getenv("SESSION_SECRET", "changme")))
 	sessionName = "gitdeploy"
 
-	// MongoDB
+// MongoDB
 	envMongoPath = env.Getenv("MONGODB", "mongodb://localhost:27017/gitdeploy")
 )
 
@@ -105,7 +105,7 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		responseSuccess(w, struct{
+		responseSuccess(w, struct {
 			*storage.App
 			Logs string `json:"logs"`
 		}{
@@ -226,9 +226,9 @@ func runJobs(w http.ResponseWriter, r *http.Request, em *event.EventManager, dr 
 
 // Set the different CORS headers required for CORS request
 func setCORSHeaders(w http.ResponseWriter, r *http.Request) {
-    w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+	w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Origin", corsAllowOrigin)
-    w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 }
 

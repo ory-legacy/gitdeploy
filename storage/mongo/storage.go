@@ -81,7 +81,7 @@ func (s *MongoStorage) AddLogEvent(app, message string) (*storage.LogEvent, erro
 
 func (s *MongoStorage) GetApp(id string) (app *storage.App, err error) {
 	c := s.db.C(appEventLogCollection)
-	return app, c.Find(bson.M{"app":    id        }).One(&app)
+	return app, c.Find(bson.M{"app": id}).One(&app)
 }
 
 func (s *MongoStorage) GetNextUnreadMessage(app string) (*storage.LogEvent, error) {
