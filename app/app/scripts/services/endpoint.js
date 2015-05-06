@@ -18,6 +18,8 @@ angular.module('gitdeployApp')
 
         return {
             sse: endpoint,
+            deploy: endpoint,
+            apps: endpoint,
             authentication: endpoint
         };
     });

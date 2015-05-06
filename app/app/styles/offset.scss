@@ -1,0 +1,15 @@
+$max: 20;
+$step: 1;
+
+@mixin offset-margin($margin, $value) {
+  margin-#{$margin}: $value;
+}
+
+@for $i from 1 through ceil($max/$step) {
+  $value: ($i - 1)*$step;
+  @each $margin in top, left, bottom, right {
+    .offset-#{$margin}-#{$value} {
+      @include offset-margin($margin, 1rem * $value)
+    }
+  }
+}

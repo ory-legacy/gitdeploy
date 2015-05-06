@@ -16,7 +16,7 @@ type MongoStorage struct {
 }
 
 const (
-	appCollection = "app"
+	appCollection         = "app"
 	appEventLogCollection = "appEvents"
 )
 
@@ -41,7 +41,7 @@ func (s *MongoStorage) Trigger(event string, data interface{}) {
 	if e, ok := data.(gde.JobEvent); ok {
 		// TODO Ugly...
 		e.SetEventName(event)
-		if _, err := s.AddLogEvent(e.GetApp(), e.GetMessage()); err != nil {
+		if _, err := s.AddDeployEvent(e.GetApp(), e.GetMessage()); err != nil {
 			log.Fatal(err.Error())
 		}
 	}
@@ -56,20 +56,26 @@ func (s *MongoStorage) AttachAggregate(em *event.EventManager) {
 	em.AttachListener("jobs.cluster", s)
 }
 
-func (s *MongoStorage) AddApp(app string, ttl time.Time) (*storage.App, error) {
+func (s *MongoStorage) AddApp(app string, ttl time.Time, repository string) (*storage.App, error) {
 	c := s.db.C(appCollection)
 	e := &storage.App{
-		ID:        app,
-		TTL:       ttl,
-		Timestamp: time.Now(),
-		Killed:    false,
+		ID:         app,
+		ExpiresAt:  ttl,
+		CreatedAt:  time.Now(),
+		Killed:     false,
+		Repository: repository,
 	}
 	return e, c.Insert(e)
 }
 
-func (s *MongoStorage) AddLogEvent(app, message string) (*storage.LogEvent, error) {
+func (s *MongoStorage) UpdateApp(app *storage.App) error {
+	c := s.db.C(appCollection)
+	return c.Update(bson.M{"id": app.ID}, app)
+}
+
+func (s *MongoStorage) AddDeployEvent(app, message string) (*storage.DeployEvent, error) {
 	c := s.db.C(appEventLogCollection)
-	e := &storage.LogEvent{
+	e := &storage.DeployEvent{
 		ID:        uuid.NewRandom().String(),
 		App:       app,
 		Message:   message,
@@ -81,14 +87,14 @@ func (s *MongoStorage) AddLogEvent(app, message string) (*storage.LogEvent, erro
 
 func (s *MongoStorage) GetApp(id string) (app *storage.App, err error) {
 	c := s.db.C(appEventLogCollection)
-	return app, c.Find(bson.M{"app": id}).One(&app)
+	return app, c.Find(bson.M{"id": id}).One(&app)
 }
 
-func (s *MongoStorage) GetNextUnreadMessage(app string) (*storage.LogEvent, error) {
-	e := new(storage.LogEvent)
+func (s *MongoStorage) GetNextUnreadMessage(app string) (*storage.DeployEvent, error) {
+	e := new(storage.DeployEvent)
 	c := s.db.C(appEventLogCollection)
 	err := c.Find(bson.M{
-		"app":    app,
+		"id":    app,
 		"unread": true,
 	}).Sort("+timestamp").One(e)
 	return e, err
@@ -97,7 +103,7 @@ func (s *MongoStorage) GetNextUnreadMessage(app string) (*storage.LogEvent, erro
 func (s *MongoStorage) GetAppKillList() (apps []*storage.App, err error) {
 	c := s.db.C(appCollection)
 	err = c.Find(bson.M{
-		"ttl": bson.M{
+		"expiresat": bson.M{
 			"$lt": time.Now(),
 		},
 		"killed": false,
@@ -111,7 +117,7 @@ func (s *MongoStorage) KillApp(app *storage.App) (err error) {
 	return c.Update(bson.M{"id": app.ID}, app)
 }
 
-func (s *MongoStorage) LogEventIsRead(event *storage.LogEvent) error {
+func (s *MongoStorage) DeployEventIsRead(event *storage.DeployEvent) error {
 	c := s.db.C(appEventLogCollection)
 	event.Unread = false
 	return c.Update(bson.M{"id": event.ID}, *event)

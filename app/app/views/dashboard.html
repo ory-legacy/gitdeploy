@@ -1,4 +1,40 @@
-<p>This is the dashboard view.</p>
+<div id="headerwrap" class="offset-bottom-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 text-center">
+                <h2>Dashboard</h2>
 
-{{ app.ttl }}
-{{ app.id }}
+                <h3>
+                    <small>{{ app.URL }}</small>
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div ng-controller="ErrorCtrl" ng-include="'views/error.html'"></div>
+
+<div class="container offset-bottom-15" ng-hide="error">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                {{ app.ttl }}
+                {{ app.id }}
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            Your app has been deployed successfully! It is going to be available at <a
+                                ng-href="{{deployedUrl}}">{{deployedUrl}}</a> for <strong>5 Minutes</strong>.
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <a ng-href="{{ deployedUrl }}" ng-show="deployedUrl" class="btn btn-success"
+                               target="_blank">See the app in action!</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

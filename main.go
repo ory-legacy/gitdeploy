@@ -24,23 +24,27 @@ import (
 	"time"
 )
 
+const (
+	sessionCurrentDeployment = "cdid"
+	sessionName              = "gdp"
+)
+
 var (
-// API Version
+	// API Version
 	ApiVersion = "1.0"
 
-// Generic configuration
+	// Generic configuration
 	host = env.Getenv("HOST", "")
 	port = env.Getenv("PORT", "7654")
 
-	envAppTtl = env.Getenv("APP_TTL", "5m")
+	envAppTtl = env.Getenv("APP_TTL", "10m")
 
-// Configuration for CORS
+	// Configuration for CORS
 	corsAllowOrigin = env.Getenv("CORS_ALLOW_ORIGIN", "http://localhost:9000")
 
 	sessionStore = gorillasession.NewCookieStore([]byte(env.Getenv("SESSION_SECRET", "changme")))
-	sessionName = "gitdeploy"
 
-// MongoDB
+	// MongoDB
 	envMongoPath = env.Getenv("MONGODB", "mongodb://localhost:27017/gitdeploy")
 )
 
@@ -76,7 +80,7 @@ func main() {
 	r.HandleFunc("/deployments", deployWrapperAction(sseBroker, eventManager, storage)).Methods("POST")
 	r.HandleFunc("/deployments", setCORSHeaders).Methods("OPTIONS")
 	r.HandleFunc("/deployments/{app:.+}/events", eventWrapperAction(sseBroker)).Methods("GET")
-	r.HandleFunc("/apps/{app:.+}", getAppHandler(sseBroker)).Methods("GET")
+	r.HandleFunc("/apps/{app:.+}", getAppHandler(storage)).Methods("GET")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./app/")))
 	http.Handle("/", r)
 
@@ -89,18 +93,24 @@ func main() {
 
 func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if cleanUpSession(w, r) != nil {
+			return
+		}
 		setCORSHeaders(w, r)
 		vars := mux.Vars(r)
 		id := vars["app"]
 		app, err := store.GetApp(id)
 		if err == mgo.ErrNotFound {
-			responseError(w, http.StatusNotFound, "App could not be found.")
-			return
+            responseError(w, http.StatusNotFound, fmt.Sprintf("App %s could not be found.", id))
+            return
+        } else if app.Killed {
+            responseError(w, http.StatusNotFound, "App timed out and is no longer available.")
+            return
 		} else if err != nil {
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		logs, err := job.GetLogs(app)
+		logs, err := job.GetLogs(app.ID)
 		if err != nil {
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -108,11 +118,22 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 		responseSuccess(w, struct {
 			*storage.App
 			Logs string `json:"logs"`
-		}{
-			app,
-			logs,
-		})
+		}{app, logs})
 	}
+}
+
+func cleanUpSession(w http.ResponseWriter, r *http.Request) error {
+	session, err := sessionStore.Get(r, sessionName)
+	if err != nil {
+		responseError(w, http.StatusBadRequest, "Please delete your cookies.")
+		return err
+	}
+	delete(session.Values, sessionCurrentDeployment)
+	if err := session.Save(r, w); err != nil {
+		responseError(w, http.StatusInternalServerError, err.Error())
+		return err
+	}
+	return nil
 }
 
 func eventWrapperAction(sseBroker *sse.Broker) func(w http.ResponseWriter, r *http.Request) {
@@ -137,13 +158,14 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 	}
 
 	// Check if the user is currently deploying an application and switch to that one.
-	if v, ok := session.Values["currentDeploymentID"]; ok {
+	if v, ok := session.Values[sessionCurrentDeployment].(string); ok && len(v) > 0 {
 		app, err := store.GetApp(v)
 		if err != nil {
-			responseError(w, http.StatusInternalServerError, "Please delete your cookies.")
-			return
-		}
-		responseSuccess(w, app)
+            cleanUpSession(w, r)
+            log.Printf("Could not fetch app from cookie: %s", err.Error())
+		} else {
+            responseSuccess(w, app)
+        }
 	}
 
 	// Parse body
@@ -164,64 +186,65 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 		responseError(w, http.StatusInternalServerError, err.Error())
 		return
 	} else {
-		appEntity, err := store.AddApp(app, time.Now().Add(ttl))
+		appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository)
 		if err != nil {
 			log.Println(err.Error())
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		session.Values["currentDeploymentID"] = appEntity.ID
+		session.Values[sessionCurrentDeployment] = appEntity.ID
 		if err := session.Save(r, w); err != nil {
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+        go runJobs(w, r, em, dr, appEntity, sseBroker, session, store)
 		responseSuccess(w, appEntity)
 	}
-
-	go runJobs(w, r, em, dr, app, sseBroker, session)
 }
 
-func runJobs(w http.ResponseWriter, r *http.Request, em *event.EventManager, dr *deployRequest, app string, sseBroker *sse.Broker, session gorillasession.Session) {
-	sseBroker.OpenChannel(app)
-	sseBroker.Start(app)
+func runJobs(w http.ResponseWriter, r *http.Request, em *event.EventManager, dr *deployRequest, app *storage.App, sseBroker *sse.Broker, session *gorillasession.Session, store *mongo.MongoStorage) {
+	sseBroker.OpenChannel(app.ID)
+	sseBroker.Start(app.ID)
 	defer func() {
 		// Give the client the chance to read the output...
 		time.Sleep(2 * time.Minute)
-		delete(session.Values, "currentDeploymentID")
-		if err := session.Save(r, w); err != nil {
-			responseError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		sseBroker.CloseChannel(app)
+		sseBroker.CloseChannel(app.ID)
 	}()
 
-	em.Trigger("app.created", gde.New(app, app))
+	em.Trigger("app.created", gde.New(app.ID, app.ID))
 
-	destination, err := job.Clone(em, app, dr.Repository)
+	destination, err := job.Clone(em, app.ID, dr.Repository)
 	if err != nil {
 		responseError(w, http.StatusInternalServerError, err.Error())
-		log.Printf("Error in job.clone %s: %s", app, err.Error())
+		log.Printf("Error in job.clone %s: %s", app.ID, err.Error())
 		return
 	}
 
-	if err = job.Parse(em, app, destination); err != nil {
-		log.Printf("Error in job.parse %s: %s", app, err.Error())
+	if err = job.Parse(em, app.ID, destination); err != nil {
+		log.Printf("Error in job.parse %s: %s", app.ID, err.Error())
 		return
 	}
 
-	if err = job.Deploy(em, app, destination); err != nil {
-		log.Printf("Error in job.deploy %s: %s", app, err.Error())
+	if err = job.Deploy(em, app.ID, destination); err != nil {
+		log.Printf("Error in job.deploy %s: %s", app.ID, err.Error())
 		return
 	}
 
-	cluster, err := job.GetCluster(em, app, destination)
+	cluster, err := job.GetCluster(em, app.ID)
 	if err != nil {
-		log.Printf("Error in job.deploy %s: %s", app, err.Error())
+		log.Printf("Error in job.deploy %s: %s", app.ID, err.Error())
+		return
+	}
+
+	app.URL = fmt.Sprintf("%s.%s", app.ID, cluster.Host)
+	if err := store.UpdateApp(app); err != nil {
+		responseError(w, http.StatusInternalServerError, err.Error())
+		log.Printf("Error %s: %s", app.ID, err.Error())
 		return
 	}
 
 	log.Println("Deployment successful.")
-	em.Trigger("app.deployed", gde.New(app, fmt.Sprintf("%s.%s", app, cluster)))
+	em.Trigger("app.deployed", gde.New(app.ID, app.URL))
 }
 
 // Set the different CORS headers required for CORS request

@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-type Listener struct {}
+type Listener struct{}
 
 func (l *Listener) Trigger(event string, data interface{}) {
 	if e, ok := data.(gde.JobEvent); ok {

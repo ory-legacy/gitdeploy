@@ -25,22 +25,22 @@ type channel struct {
 	// over which we can push Messages to attached Clients.  (The values
 	// are just booleans and are meaningless.)
 	//
-	clients map[chan *storage.LogEvent]bool
+	clients map[chan *storage.DeployEvent]bool
 
 	// Channel into which new Clients can be pushed
 	//
-	newClients chan chan *storage.LogEvent
+	newClients chan chan *storage.DeployEvent
 
 	// Channel into which disconnected Clients should be pushed
 	//
-	defunctClients chan chan *storage.LogEvent
+	defunctClients chan chan *storage.DeployEvent
 }
 
 func (b *Broker) OpenChannel(name string) *channel {
 	c := &channel{
-		make(map[chan *storage.LogEvent]bool),
-		make(chan (chan *storage.LogEvent)),
-		make(chan (chan *storage.LogEvent)),
+		make(map[chan *storage.DeployEvent]bool),
+		make(chan (chan *storage.DeployEvent)),
+		make(chan (chan *storage.DeployEvent)),
 	}
 	log.Printf("Opening channel %s.", name)
 	b.channels[name] = c
@@ -79,14 +79,14 @@ func (b *Broker) Start(channel string) error {
 
 			select {
 			case s := <-c.newClients:
-			// There is a new client attached and we
-			// want to start sending them Messages.
+				// There is a new client attached and we
+				// want to start sending them Messages.
 				c.clients[s] = true
 				log.Println("Added new client.")
 
 			case s := <-c.defunctClients:
-			// A client has dettached and we want to
-			// stop sending them Messages.
+				// A client has dettached and we want to
+				// stop sending them Messages.
 				delete(c.clients, s)
 				log.Println("Removed client.")
 
@@ -102,11 +102,11 @@ func (b *Broker) Start(channel string) error {
 	return nil
 }
 
-func (b *Broker) PullNextMessage(c *channel, name string) (chan *storage.LogEvent, error) {
-	leChan := make(chan *storage.LogEvent)
+func (b *Broker) PullNextMessage(c *channel, name string) (chan *storage.DeployEvent, error) {
+	leChan := make(chan *storage.DeployEvent)
 	if len(c.clients) > 0 {
 		le, err := b.storage.GetNextUnreadMessage(name)
-		b.storage.LogEventIsRead(le)
+		b.storage.DeployEventIsRead(le)
 		if err == mgo.ErrNotFound {
 			return nil, nil
 		} else if err != nil {
@@ -147,7 +147,7 @@ func (b *Broker) EventHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create a new channel, over which the broker can
 	// send this client Messages.
-	messageChan := make(chan *storage.LogEvent)
+	messageChan := make(chan *storage.DeployEvent)
 
 	// Add this client to the map of those that should
 	// receive updates
@@ -168,14 +168,13 @@ func (b *Broker) EventHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-w.(http.CloseNotifier).CloseNotify():
-		// Done
+			// Done
 			log.Println("Finished HTTP request at ", r.URL.Path)
 			return
 		case e := <-messageChan:
 			if len(e.Message) > 0 {
 				// Write to the ResponseWriter, `w`.
 				fmt.Fprintf(w, "data: %s\n\n", e.Message)
-				// log.Printf("Sending data %s", e.Message)
 
 				// Flush the response. This is only possible if
 				// the response supports streaming.
@@ -188,7 +187,7 @@ func (b *Broker) EventHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Finished HTTP request at %s", r.URL.Path)
 }
 
-func (b *Broker) detachClient(c *channel, messageChan chan *storage.LogEvent) {
+func (b *Broker) detachClient(c *channel, messageChan chan *storage.DeployEvent) {
 	c.defunctClients <- messageChan
 	log.Println("Detached client.")
 }

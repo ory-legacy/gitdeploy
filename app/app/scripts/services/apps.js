@@ -8,12 +8,15 @@
  * Service in the gitdeployApp.
  */
 angular.module('gitdeployApp')
-    .service('apps', ['endpoint', '$http', function (endpoint, $http) {
-        return {
-            getApp: function (id) {
-                return new Promise(function (resolve, reject) {
-                    $http.get(endpoint.api + '/' + id, {withCredentials: true}).success(resolve).error(reject);
-                });
-            }
-        };
-    }]);
+    .service('apps', [
+        'endpoint', '$http', function (endpoint, $http) {
+            return {
+                getApp: function (id) {
+                    return new Promise(function (resolve, reject) {
+                        $http.get(endpoint.apps + '/apps/' + id,
+                            {withCredentials: true}).success(resolve).error(reject);
+                    });
+                }
+            };
+        }
+    ]);

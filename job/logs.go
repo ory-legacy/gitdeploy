@@ -5,9 +5,9 @@ import (
 )
 
 func GetLogs(app string) (string, error) {
-	o, err := exec.Command("flynn", "-a", app, "logs").CombinedOutput()
+	o, err := exec.Command("flynn", "-a", app, "log").CombinedOutput()
 	if err != nil {
 		return "", err
 	}
-	return string(o)
+	return string(o), nil
 }
