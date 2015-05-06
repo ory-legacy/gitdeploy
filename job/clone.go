@@ -31,5 +31,9 @@ func Clone(em *event.EventManager, app, source string) (destination string, err 
 	go scanPipe(stderr, em, eventName, app)
 
 	// Run the job!
-	return destination, e.Run()
+	if err := e.Run(); err != nil {
+		em.Trigger(eventName, gde.New(app, "ERROR in git clone!"))
+		return "", err
+	}
+	return destination, nil
 }

@@ -8,6 +8,7 @@ type Storage interface {
 	GetAppKillList() ([]*App, error)
 	KillApp(app *App) error
 	AddDeployEvent(app, message string) (*DeployEvent, error)
+	GetAppDeployLogs(app string) ([]*DeployEvent, error)
 	GetNextUnreadMessage(app string) (*DeployEvent, error)
 	DeployEventIsRead(event *DeployEvent) error
 }

@@ -15,6 +15,7 @@ angular
         'ngResource',
         'ngRoute',
         'ngSanitize',
+        'chart.js',
         'ngTouch'
     ])
     .config([

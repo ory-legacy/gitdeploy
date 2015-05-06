@@ -4,9 +4,7 @@
             <div class="col-xs-12 text-center">
                 <h2>Dashboard</h2>
 
-                <h3>
-                    <small>{{ app.URL }}</small>
-                </h3>
+                <h3><a ng-href="http://{{app.url}}" target="_blank">{{ app.url }}</a></h3>
             </div>
         </div>
     </div>
@@ -14,23 +12,113 @@
 
 <div ng-controller="ErrorCtrl" ng-include="'views/error.html'"></div>
 
+
 <div class="container offset-bottom-15" ng-hide="error">
+    <div class="alert alert-warning" ng-show="app.ps.length === 0">
+        No logs have been found. This <em>might</em> indicate that starting the process has failed.
+        Please check the logs and create an issue on our <a href="https://github.com/ory-am/gitdeploy">GitHub</a>.
+    </div>
+
     <div class="row">
         <div class="col-md-12">
-            <div class="panel panel-default">
-                {{ app.ttl }}
-                {{ app.id }}
+            <div class="panel panel-success">
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-xs-12">
-                            Your app has been deployed successfully! It is going to be available at <a
-                                ng-href="{{deployedUrl}}">{{deployedUrl}}</a> for <strong>5 Minutes</strong>.
+                            Your app was deployed successfully!
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Monitor
+                </div>
+                <div class="panel-body">
                     <div class="row">
-                        <div class="col-xs-12">
-                            <a ng-href="{{ deployedUrl }}" ng-show="deployedUrl" class="btn btn-success"
-                               target="_blank">See the app in action!</a>
+                        <div class="col-md-5">
+                            <canvas id="doughnut" colours="colors" class="chart chart-doughnut" data="data"
+                                    labels="labels" legend="true"></canvas>
+                        </div>
+                        <div class="col-md-7">
+                            <table class="table">
+                                <tr>
+                                    <td class="borderless">
+                                        <strong>App expires in:</strong>
+                                    </td>
+                                    <td class="borderless">
+                                        {{ app.ttl }} Minutes
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Live url:</strong>
+                                    </td>
+                                    <td>
+                                        <a ng-href="http://{{ app.url }}" target="_blank">{{ app.url }}</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Repository:</strong>
+                                    </td>
+                                    <td>
+                                        <a ng-href="{{ app.repository }}" target="_blank">{{ app.repository }}</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Deployment ID:</strong>
+                                    </td>
+                                    <td>
+                                        {{ app.id }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Running processes:</strong>
+                                    </td>
+                                    <td>
+                                        <table class="table">
+                                            <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Type</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr ng-repeat="p in app.ps">
+                                                <td>{{ p.id }}</td>
+                                                <td>{{ p.type }}</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Logs
+                </div>
+                <div class="panel-body">
+                    <p>
+                        <strong>Something doesn't work? Check the logs for errors!</strong> If you think you've found a
+                        bug, head over to our
+                        <a href="https://github.com/ory-am/gitdeploy">GitHub</a> and create an issue.
+                    </p>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Deploy logs</strong>
+                            <pre class="well">{{ app.deployLogs || 'No logs available' }}</pre>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Process logs</strong>
+                            <pre class="well">{{ app.logs || 'No logs available' }}</pre>
                         </div>
                     </div>
                 </div>

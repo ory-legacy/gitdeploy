@@ -16,7 +16,7 @@ type MongoStorage struct {
 }
 
 const (
-	appCollection         = "app"
+	appCollection = "app"
 	appEventLogCollection = "appEvents"
 )
 
@@ -86,15 +86,19 @@ func (s *MongoStorage) AddDeployEvent(app, message string) (*storage.DeployEvent
 }
 
 func (s *MongoStorage) GetApp(id string) (app *storage.App, err error) {
-	c := s.db.C(appEventLogCollection)
+	c := s.db.C(appCollection)
 	return app, c.Find(bson.M{"id": id}).One(&app)
+}
+
+func (s *MongoStorage) GetAppDeployLogs(app string) (e []*storage.DeployEvent, err error) {
+	return e, s.db.C(appEventLogCollection).Find(bson.M{"app": app}).All(&e)
 }
 
 func (s *MongoStorage) GetNextUnreadMessage(app string) (*storage.DeployEvent, error) {
 	e := new(storage.DeployEvent)
 	c := s.db.C(appEventLogCollection)
 	err := c.Find(bson.M{
-		"id":    app,
+		"app":    app,
 		"unread": true,
 	}).Sort("+timestamp").One(e)
 	return e, err

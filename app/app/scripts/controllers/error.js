@@ -14,5 +14,8 @@ angular.module('gitdeployApp')
                 console.log('err', $rootScope.error);
                 $scope.error = $rootScope.error;
             });
+            $scope.reload = function () {
+                window.location.reload();
+            };
         }
     ]);

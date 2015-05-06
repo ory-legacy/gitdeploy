@@ -37,7 +37,7 @@ var (
 	host = env.Getenv("HOST", "")
 	port = env.Getenv("PORT", "7654")
 
-	envAppTtl = env.Getenv("APP_TTL", "10m")
+	envAppTtl = env.Getenv("APP_TTL", "30m")
 
 	// Configuration for CORS
 	corsAllowOrigin = env.Getenv("CORS_ALLOW_ORIGIN", "http://localhost:9000")
@@ -77,6 +77,7 @@ func main() {
 
 	// Mux router
 	r := mux.NewRouter()
+	r.HandleFunc("/config", configHandler).Methods("GET")
 	r.HandleFunc("/deployments", deployWrapperAction(sseBroker, eventManager, storage)).Methods("POST")
 	r.HandleFunc("/deployments", setCORSHeaders).Methods("OPTIONS")
 	r.HandleFunc("/deployments/{app:.+}/events", eventWrapperAction(sseBroker)).Methods("GET")
@@ -91,6 +92,15 @@ func main() {
 	log.Fatal(http.ListenAndServe(listen, nil))
 }
 
+func configHandler(w http.ResponseWriter, r *http.Request) {
+	setCORSHeaders(w, r)
+	responseSuccess(w, struct {
+		Now time.Time `json:"now"`
+	}{
+		time.Now(),
+	})
+}
+
 func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if cleanUpSession(w, r) != nil {
@@ -101,7 +111,7 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 		id := vars["app"]
 		app, err := store.GetApp(id)
 		if err == mgo.ErrNotFound {
-            responseError(w, http.StatusNotFound, fmt.Sprintf("App %s could not be found.", id))
+            responseError(w, http.StatusNotFound, fmt.Sprintf("App %s does not exist.", id))
             return
         } else if app.Killed {
             responseError(w, http.StatusNotFound, "App timed out and is no longer available.")
@@ -115,10 +125,26 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+
+		ps, err := job.GetPS(app.ID)
+		if err != nil {
+			responseError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+
+		deployLogs, err := store.GetAppDeployLogs(id)
+		if err != nil {
+			responseError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
 		responseSuccess(w, struct {
 			*storage.App
 			Logs string `json:"logs"`
-		}{app, logs})
+			DeployLogs []*storage.DeployEvent `json:"deployLogs"`
+			PS string `json:"ps"`
+		}{app, logs, deployLogs, ps})
 	}
 }
 
@@ -188,7 +214,6 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 	} else {
 		appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository)
 		if err != nil {
-			log.Println(err.Error())
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -215,7 +240,6 @@ func runJobs(w http.ResponseWriter, r *http.Request, em *event.EventManager, dr 
 
 	destination, err := job.Clone(em, app.ID, dr.Repository)
 	if err != nil {
-		responseError(w, http.StatusInternalServerError, err.Error())
 		log.Printf("Error in job.clone %s: %s", app.ID, err.Error())
 		return
 	}
@@ -256,6 +280,7 @@ func setCORSHeaders(w http.ResponseWriter, r *http.Request) {
 }
 
 func responseError(w http.ResponseWriter, code int, message string) {
+	log.Printf("Error %d: %s", code, message)
 	response := responder.New(ApiVersion)
 	response.Write(w, response.Error(code, message))
 }
@@ -276,12 +301,6 @@ func checkDependencies() {
 		_, err := exec.LookPath("flynn")
 		if err != nil {
 			log.Fatal("Flynn CLI is required but not installed or not in path.")
-		}
-	}()
-	go func() {
-		_, err := exec.LookPath("bash")
-		if err != nil {
-			log.Fatal("Bash is required but not installed or not in path.")
 		}
 	}()
 }

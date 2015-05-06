@@ -12,6 +12,7 @@ angular.module('gitdeployApp')
         '$q', '$rootScope', function ($q, $rootScope) {
             return {
                 'responseError': function (rejection) {
+                    console.log('rror in response!', rejection);
                     if (rejection.status === 0) {
                         $rootScope.error = {
                             status: 0,
