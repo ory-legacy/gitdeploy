@@ -111,11 +111,11 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 		id := vars["app"]
 		app, err := store.GetApp(id)
 		if err == mgo.ErrNotFound {
-            responseError(w, http.StatusNotFound, fmt.Sprintf("App %s does not exist.", id))
-            return
-        } else if app.Killed {
-            responseError(w, http.StatusNotFound, "App timed out and is no longer available.")
-            return
+			responseError(w, http.StatusNotFound, fmt.Sprintf("App %s does not exist.", id))
+			return
+		} else if app.Killed {
+			responseError(w, http.StatusNotFound, "App timed out and is no longer available.")
+			return
 		} else if err != nil {
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -132,7 +132,6 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 			return
 		}
 
-
 		deployLogs, err := store.GetAppDeployLogs(id)
 		if err != nil {
 			responseError(w, http.StatusInternalServerError, err.Error())
@@ -141,9 +140,9 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 
 		responseSuccess(w, struct {
 			*storage.App
-			Logs string `json:"logs"`
+			Logs       string                 `json:"logs"`
 			DeployLogs []*storage.DeployEvent `json:"deployLogs"`
-			PS string `json:"ps"`
+			PS         string                 `json:"ps"`
 		}{app, logs, deployLogs, ps})
 	}
 }
@@ -187,11 +186,11 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 	if v, ok := session.Values[sessionCurrentDeployment].(string); ok && len(v) > 0 {
 		app, err := store.GetApp(v)
 		if err != nil {
-            cleanUpSession(w, r)
-            log.Printf("Could not fetch app from cookie: %s", err.Error())
+			cleanUpSession(w, r)
+			log.Printf("Could not fetch app from cookie: %s", err.Error())
 		} else {
-            responseSuccess(w, app)
-        }
+			responseSuccess(w, app)
+		}
 	}
 
 	// Parse body
@@ -222,7 +221,7 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-        go runJobs(w, r, em, dr, appEntity, sseBroker, session, store)
+		go runJobs(w, r, em, dr, appEntity, sseBroker, session, store)
 		responseSuccess(w, appEntity)
 	}
 }

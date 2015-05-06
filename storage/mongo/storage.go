@@ -16,7 +16,7 @@ type MongoStorage struct {
 }
 
 const (
-	appCollection = "app"
+	appCollection         = "app"
 	appEventLogCollection = "appEvents"
 )
 
