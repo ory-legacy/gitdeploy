@@ -47,7 +47,7 @@
                                         <strong>App expires in:</strong>
                                     </td>
                                     <td class="borderless">
-                                        {{ app.ttl }} Minutes
+                                        {{ app.expiresAt.fromNow() }}
                                     </td>
                                 </tr>
                                 <tr>
@@ -64,6 +64,14 @@
                                     </td>
                                     <td>
                                         <a ng-href="{{ app.repository }}" target="_blank">{{ app.repository }}</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Created:</strong>
+                                    </td>
+                                    <td>
+                                        {{ app.createdAt.fromNow() }}
                                     </td>
                                 </tr>
                                 <tr>

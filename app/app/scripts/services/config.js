@@ -28,11 +28,11 @@ angular.module('gitdeployApp')
                     });
                 },
                 get: function () {
-                return new Promise(function (resolve, reject) {
-                    $http.get(endpoint.apps + '/config',
-                        {withCredentials: true}).success(resolve).error(reject);
-                });
-            }
+                    return new Promise(function (resolve, reject) {
+                        $http.get(endpoint.apps + '/config',
+                            {withCredentials: true}).success(resolve).error(reject);
+                    });
+                }
             };
         }
     ]);

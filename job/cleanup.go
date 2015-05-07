@@ -5,8 +5,8 @@ import (
 	"github.com/ory-am/gitdeploy/storage"
 	"log"
 	"os/exec"
-	"time"
 	"strings"
+	"time"
 )
 
 func KillAppsOnHitList(store storage.Storage) {
@@ -31,7 +31,6 @@ func KillAppsOnHitList(store storage.Storage) {
 				}()
 			}
 		}
-
 		time.Sleep(15 * time.Second)
 	}
 }

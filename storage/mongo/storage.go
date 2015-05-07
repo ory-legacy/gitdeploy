@@ -9,11 +9,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"log"
 	"time"
-	"fmt"
 )
 
 const (
-	appCollection         = "app"
+	appCollection          = "app"
 	appDeployLogCollection = "appEvents"
 )
 
