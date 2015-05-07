@@ -106,7 +106,7 @@ func (b *Broker) Start(channel string) error {
 func (b *Broker) PullNextMessage(c *channel, name string) (chan *storage.DeployEvent, error) {
 	leChan := make(chan *storage.DeployEvent)
 	if len(c.clients) > 0 {
-		le, err := b.storage.GetNextUnreadMessage(name)
+		le, err := b.storage.GetNextUnreadDeployEvent(name)
 		b.storage.DeployEventIsRead(le)
 		if err == mgo.ErrNotFound {
 			return nil, nil

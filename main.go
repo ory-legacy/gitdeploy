@@ -132,7 +132,7 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 			return
 		}
 
-		deployLogs, err := store.GetAppDeployLogs(id)
+		deployLogs, err := store.FindDeployLogsForApp(id)
 		if err != nil {
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return

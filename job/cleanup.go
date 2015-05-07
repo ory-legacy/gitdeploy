@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"github.com/ory-am/gitdeploy/storage"
 	"log"
-	"os"
 	"os/exec"
 	"time"
+	"strings"
 )
 
 func KillAppsOnHitList(store storage.Storage) {
 	for {
-		apps, err := store.GetAppKillList()
+		apps, err := store.FindAppsOnKillList()
 		if err != nil {
 			log.Printf("Could not fetch kill-list: %s", err)
 		} else {
@@ -19,13 +19,15 @@ func KillAppsOnHitList(store storage.Storage) {
 				go func() {
 					fmt.Println([]string{"flynn", "-a", app.ID, "delete", "-y"})
 					e := exec.Command("flynn", "-a", app.ID, "delete", "-y")
-					e.Stderr = os.Stderr
-					e.Stdout = os.Stdout
-					if err = e.Run(); err != nil {
-						log.Printf("An error occured while cleanup: %s", err.Error())
-					} else {
-						store.KillApp(app)
+					out, err := e.CombinedOutput()
+					reason := strings.Trim(string(out), " \n\r")
+					if reason == "controller: resource not found" {
+						log.Printf("App %s is not known to controller.", app.ID)
+					} else if err != nil {
+						log.Printf("An error occured while cleanup %s. Reason: %s", err.Error(), out)
+						return
 					}
+					store.KillApp(app)
 				}()
 			}
 		}

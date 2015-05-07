@@ -71,32 +71,32 @@
 <div id="service">
     <div class="container">
         <div class="row centered">
-            <div class="col-md-12">
+            <div class="col-md-12 hidden">
                 <h2>DOCUMENTATION</h2>
 <pre class="text-left"><code class="yaml"># This is the .gitignore.yml file. It must be placed in your
-    # repositories root directory.
+# repositories root directory.
 
 
-    # The process section generates or overshadows the Procfile
-    # Learn more about Procfiles: https://devcenter.heroku.com/articles/procfile
-    Process:
-    - web: node server.js
-    # - web: some-binary
+# The process section generates or overshadows the Procfile
+# Learn more about Procfiles: https://devcenter.heroku.com/articles/procfile
+Process:
+- web: node server.js
+# - web: some-binary
 
-    # The Godir section generates or overshadows the .godir file
-    # Only necessary when deploying Go
-    Godir: github.com/some/repository
+# The Godir section generates or overshadows the .godir file
+# Only necessary when deploying Go
+Godir: github.com/some/repository
 
-    Backends:
-    # Currently, only PostgreSQL is supported
-    - postgresql:
-    # Define to which environment variables the database information
-    # will be bound to.
-    - port: PG_PORT # Binds the database port to $PG_PORT
-    - host: PG_HOST # Bind the database hostname to $PG_HOST
-    - path: PG_PATH
-    - username: PG_USERNAME
-    - password: PG_PASSWORD
+Backends:
+# Currently, only PostgreSQL is supported
+- postgresql:
+# Define to which environment variables the database information
+# will be bound to.
+- port: PG_PORT # Binds the database port to $PG_PORT
+- host: PG_HOST # Bind the database hostname to $PG_HOST
+- path: PG_PATH
+- username: PG_USERNAME
+- password: PG_PASSWORD
 </code></pre>
             </div>
         </div>
