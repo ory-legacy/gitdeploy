@@ -40,15 +40,12 @@ Godir:
     github.com/user/myexample
 ```
 
-### 
+## Local gitdeploy
 
-## Contribute
+You need [http://golang.org/](Go) and [http://nodejs.org/](Nodejs) installed on your machine. Additionally, a MongoDB instance is required. You can set up a MongoDB instance using Docker:
 
-1. Install MongoDB
-  1. Windows / Mac OSX
-    1. Download and install [Virtualbox](https://www.virtualbox.org/)
-    - Download and install [Boot2Docker](http://boot2docker.io/)
-    - Run  
+**On Windows and Max OS X**, download and install [Virtualbox](https://www.virtualbox.org/) and [Boot2Docker](http://boot2docker.io/). Next run
+
 ```
 > boot2docker init
 > VBoxManage modifyvm "boot2docker-vm" --natpf1 "guestmongodb,tcp,127.0.0.1,27017,,27017"
@@ -56,14 +53,17 @@ Godir:
 > boot2docker ssh
 > docker run -d -p 27017:27017 library/mongo
 ```
-  2. Linux
-    1. Download and install [Docker](https://www.docker.com/)
-    2, `$ docker run -d -p 27017:27017 library/mongo`
-  3. **WARNING:** If you reboot the boot2docker-vm or the host you need to restart the container as well. You can get the container id by doing `docker ps -l` and start it by doing `docker start {id}` (replace {id} with id from `docker ps -l`).
 
-2. Install [http://golang.org/](Go).
-3. Install [http://nodejs.org/](Nodejs).
-4. Run  
+**On Linux*** download and install [Docker](https://www.docker.com/) and run `$ docker run -d -p 27017:27017 library/mongo`
+
+**IMPORTANT:** If you reboot the boot2docker-vm or the host you need to restart the container as well. You can get the container id by doing `docker ps -l` and start it by doing `docker start {id}` (replace {id} with id from `docker ps -l`).
+
+Almost done, now do in two separate terminals:
+
+```
+$ go run main.go
+```
+
 ```
 $ cd app
 $ npm install -g grunt-cli bower yo generator-karma generator-angular
@@ -71,3 +71,21 @@ $ npm install
 $ bower install
 $ grunt serve
 ```
+
+A window with Gitdeploy should open up automatically. If not, go to [http://localhost:9000](localhost:9000)
+
+### Production
+
+To run a production build, do:
+
+```
+$ cd app
+$ npm install -g grunt-cli bower yo generator-karma generator-angular
+$ npm install
+$ bower install
+$ grunt build
+$ cd ..
+$ go run main.go
+```
+
+Go to [http://localhost:7654](localhost:7654)
