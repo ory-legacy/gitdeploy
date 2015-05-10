@@ -48,26 +48,26 @@ Godir:
   1. Windows / Mac OSX
     1. Download and install [Virtualbox](https://www.virtualbox.org/)
     - Download and install [Boot2Docker](http://boot2docker.io/)
-    - ```
+    - Run  
+```
 > boot2docker init
 > VBoxManage modifyvm "boot2docker-vm" --natpf1 "guestmongodb,tcp,127.0.0.1,27017,,27017"
 > boot2docker start
 > boot2docker ssh
 > docker run -d -p 27017:27017 library/mongo
 ```
- - Linux
-  * Download and install [Docker](https://www.docker.com/)
-  * ```
-$ docker run -d -p 27017:27017 library/mongo
-```
+  2. Linux
+    1. Download and install [Docker](https://www.docker.com/)
+    2, `$ docker run -d -p 27017:27017 library/mongo`
+  3. **WARNING:** If you reboot the boot2docker-vm or the host you need to restart the container as well. You can get the container id by doing `docker ps -l` and start it by doing `docker start {id}` (replace {id} with id from `docker ps -l`).
 
-  - **WARNING:** If you reboot the boot2docker-vm or the host you need to restart the container as well. You can get the container id by doing `docker ps -l` and start it by doing `docker start {id}` (replace {id} with id from `docker ps -l`).
 2. Install [http://golang.org/](Go).
 3. Install [http://nodejs.org/](Nodejs).
-4. ```
- $ cd app
- $ npm install -g grunt-cli bower yo generator-karma generator-angular
- $ npm install
- $ bower install
- $ grunt serve
- ```
+4. Run  
+```
+$ cd app
+$ npm install -g grunt-cli bower yo generator-karma generator-angular
+$ npm install
+$ bower install
+$ grunt serve
+```
