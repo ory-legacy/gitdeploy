@@ -42,7 +42,7 @@ Godir:
 
 ## Local gitdeploy
 
-You need [http://golang.org/](Go) and [http://nodejs.org/](Nodejs) installed on your machine. Additionally, a MongoDB instance is required. You can set up a MongoDB instance using Docker:
+You need [Go](http://golang.org/) and [NodeJS](http://nodejs.org/) installed on your machine. Additionally, a MongoDB instance is required. You can set up a MongoDB instance using Docker:
 
 **On Windows and Max OS X**, download and install [Virtualbox](https://www.virtualbox.org/) and [Boot2Docker](http://boot2docker.io/). Next run
 
@@ -72,7 +72,7 @@ $ bower install
 $ grunt serve
 ```
 
-A window with Gitdeploy should open up automatically. If not, go to [http://localhost:9000](localhost:9000)
+A window with Gitdeploy should open up automatically. If not, go to [localhost:9000](http://localhost:9000)
 
 ### Production
 
@@ -88,4 +88,4 @@ $ cd ..
 $ go run main.go
 ```
 
-Go to [http://localhost:7654](localhost:7654)
+Go to [localhost:7654](http://localhost:7654)
