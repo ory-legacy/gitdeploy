@@ -3,7 +3,6 @@
         <div class="row">
             <div class="col-xs-12 text-center">
                 <h2>Dashboard</h2>
-
                 <h3><a ng-href="http://{{app.url}}" target="_blank">{{ app.url }}</a></h3>
             </div>
         </div>
@@ -25,7 +24,18 @@
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-xs-12">
-                            Your app was deployed successfully!
+                            Your app was deployed successfully to <a ng-href="http://{{app.url}}" target="_blank">{{ app.url }}</a>!
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="noWebProcess">
+                <div class="panel panel-warning">
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                No web process was started. You'll likely receive a 503 error.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -134,3 +144,5 @@
         </div>
     </div>
 </div>
+
+<div ng-include="'views/earlyaccess.html'"></div>

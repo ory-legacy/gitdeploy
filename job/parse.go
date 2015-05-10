@@ -23,8 +23,8 @@ var eventName = "jobs.parse"
 func Parse(em *event.EventManager, app, sourcePath string) error {
 	filename := sourcePath + "/.gitdeploy.yml"
 	if _, err := os.Stat(filename); err != nil {
-		em.Trigger(eventName, gde.New(app, "ERROR: .gitdeploy.yml not found. Deployment is probably going to fail."))
-		return err
+		em.Trigger(eventName, gde.New(app, "WARN: .gitdeploy.yml not found. Deployment might to fail."))
+		return nil
 	}
 
 	em.Trigger(eventName, gde.New(app, "Found .gitdeploy.yml"))

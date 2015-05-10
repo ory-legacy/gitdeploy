@@ -83,11 +83,11 @@ a {
   border: none !important;
 }
 
-h3>a, h3>a {
+.headerwrap a, .headerwrap a {
   text-decoration: none;
   color: white;
 }
-h3>a:hover, h3>a:focus {
+.headerwrap a:hover, .headerwrap a:focus {
   text-decoration: none;
   color: $site-color-black;;
 }
@@ -254,6 +254,12 @@ a:focus {
 #headerwrap h3, h5 {
   color: white;
   font-weight: 400;
+  a {
+    color: white;
+    &:hover {
+      color: #222;
+    }
+  }
 }
 
 #headerwrap h1 {
@@ -268,8 +274,7 @@ a:focus {
 /* Services Wrap */
 #service {
   margin-top: 0px;
-  margin-bottom: 0px;
-  min-height: 300px;
+  margin-bottom: 50px;
 }
 
 #service i {
@@ -348,11 +353,10 @@ a:focus {
   background: url(../img/t-back.jpg) no-repeat center top;
   position: relative;
   margin-top: 0px;
-  padding-top: 60px;
+  padding: 60px;
   text-align: center;
   background-attachment: relative;
   background-position: center center;
-  min-height: 450px;
   width: 100%;
 
   -webkit-background-size: 100%;

@@ -19,7 +19,6 @@
 </head>
 <body ng-app="gitdeployApp">
 
-<!-- Fixed navbar -->
 <div class="navbar navbar-default navbar-fixed-top" ng-controller="NavCtrl" role="navigation">
     <div class="container">
         <div class="navbar-header">
@@ -30,16 +29,18 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" target="_self" href="/">Gitdeploy.io
-                <small><sup>preview</sup></small>
+                <small><sup>early access</sup></small>
             </a>
         </div>
         <div class="navbar-collapse collapse navbar-right">
             <ul class="nav navbar-nav">
                 <li><a href="/">HOME</a></li>
-                <li><a href="https://github.com/ory-am/gitdeploy"><span class="fa fa-github fa-2x"></span></a></li>
+                <li><a href="/examples">EXAMPLES</a></li>
+                <li><a href="/docs">DOCS</a></li>
+                <li><a href="/contact">CONTACT US</a></li>
+                <!--<li><a href="https://github.com/ory-am/gitdeploy"><span class="fa fa-github fa-2x"></span></a></li>-->
             </ul>
         </div>
-        <!--/.nav-collapse -->
     </div>
 </div>
 
@@ -60,15 +61,14 @@
                 </div>
                 <div class="hline-w"></div>
                 <p class="text-center">
-                    <a href="https://github.com/ory-am/gitdeploy" class="btn-social btn-outline"><i
-                            class="fa fa-github"></i></a>
+                    <a href="https://github.com/ory-am" class="btn-social btn-outline"><i class="fa fa-github"></i></a>
                     <a href="https://twitter.com/_aeneasr" class="btn-social btn-outline"><i class="fa fa-twitter"></i></a>
                 </p>
             </div>
             <div class="col-lg-6">
                 <div class="text-center">
-                    <h5>All Your Base</h5>
-                    <h4>Are Belong To Us</h4>
+                    <h5>Site Notice</h5>
+                    <h4>All Your Base Are Belong To Us</h4>
                 </div>
                 <div class="hline-w"></div>
                 <p class="text-center">
@@ -79,26 +79,8 @@
                 </p>
             </div>
         </div>
-        <! --/row -->
     </div>
-    <! --/container -->
 </div>
-<! --/footerwrap -->
-
-
-<!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
-<script>
-    !function (A, n, g, u, l, a, r) {
-        A.GoogleAnalyticsObject = l, A[l] = A[l] || function () {
-            (A[l].q = A[l].q || []).push(arguments)
-        }, A[l].l = +new Date, a = n.createElement(g),
-                r = n.getElementsByTagName(g)[0], a.src = u, r.parentNode.insertBefore(a, r)
-    }(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
-
-    ga('create', 'UA-XXXXX-X');
-    ga('send', 'pageview');
-
-</script>
 
 <!-- build:js(.) scripts/vendor.js -->
 <!-- bower:js -->
@@ -114,6 +96,8 @@
 <script src="bower_components/Chart.js/Chart.js"></script>
 <script src="bower_components/angular-chart.js/dist/angular-chart.js"></script>
 <script src="bower_components/moment/moment.js"></script>
+<script src="bower_components/showdown/src/showdown.js"></script>
+<script src="bower_components/angular-markdown-directive/markdown.js"></script>
 <!-- endbower -->
 <!-- endbuild -->
 
@@ -128,6 +112,9 @@
 <script src="scripts/services/httperrorinterceptor.js"></script>
 <script src="scripts/controllers/error.js"></script>
 <script src="scripts/services/config.js"></script>
+<script src="scripts/controllers/docs.js"></script>
+<script src="scripts/controllers/contact.js"></script>
+<script src="scripts/controllers/examples.js"></script>
 <!-- endbuild -->
 </body>
 </html>

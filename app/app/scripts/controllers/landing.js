@@ -13,7 +13,7 @@ angular.module('gitdeployApp')
         '$window', '$scope',
         function ($window, $scope) {
             $scope.repository = {};
-            $scope.createShield = function createShield($event) {
+            $scope.showIntegration = function createShield($event) {
                 var parser = document.createElement('a'), name;
                 $event.stopPropagation();
                 parser.href = $scope.repository.url;
@@ -33,9 +33,6 @@ angular.module('gitdeployApp')
                 $scope.repository.showBadge = true;
                 $scope.repository.deployUrl =
                     window.location.protocol + '//' + window.location.host + '/deploy?repository=' + encodeURIComponent($scope.repository.url);
-                return false;
-            };
-            $scope.showIntegration = function showIntegration($event) {
                 $event.stopPropagation();
                 $('#shieldModal').modal('show');
                 return false;

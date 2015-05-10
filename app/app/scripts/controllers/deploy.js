@@ -71,7 +71,7 @@ angular.module('gitdeployApp')
                         $scope.error = 'The backend server returned an error: No response was given, come back later.';
                     } else {
                         $scope.error = 'The backend server returned an error: ' +
-                            (data.error.message || 'No response was given, come back later.');
+                        (data.error.message || 'No response was given, come back later.');
                     }
                 });
         }

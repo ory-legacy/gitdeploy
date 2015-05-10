@@ -11,8 +11,4 @@ describe('Service: httperrorinterceptor', function () {
     httperrorinterceptor = _httperrorinterceptor_;
   }));
 
-  it('should do something', function () {
-    expect(!!httperrorinterceptor).toBe(true);
-  });
-
 });

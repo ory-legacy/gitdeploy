@@ -11,8 +11,5 @@ describe('Service: endpoint', function () {
     endpoint = _endpoint_;
   }));
 
-  it('should do something', function () {
-    expect(!!endpoint).toBe(true);
-  });
 
 });

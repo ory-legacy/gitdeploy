@@ -11,7 +11,6 @@ angular.module('gitdeployApp')
     .controller('ErrorCtrl', [
         '$rootScope', '$scope', function ($scope, $rootScope) {
             $rootScope.$on('error', function () {
-                console.log('err', $rootScope.error);
                 $scope.error = $rootScope.error;
             });
             $scope.reload = function () {

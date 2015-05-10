@@ -12,16 +12,21 @@ angular.module('gitdeployApp')
         '$q', '$rootScope', function ($q, $rootScope) {
             return {
                 'responseError': function (rejection) {
-                    console.log('rror in response!', rejection);
+                    console.log('Error in response!', rejection);
                     if (rejection.status === 0) {
                         $rootScope.error = {
                             status: 0,
                             message: 'The backend service is unavailable. Either the network is down or there are temporary issues with the backend. Try again later.'
                         };
-                    } else {
+                    } else if (rejection.data.error !== undefined && rejection.data.error.message !== undefined) {
                         $rootScope.error = {
                             status: rejection.status,
                             message: rejection.data.error.message
+                        };
+                    } else {
+                        $rootScope.error = {
+                            status: rejection.status,
+                            message: rejection.data
                         };
                     }
                     $rootScope.$broadcast('error');

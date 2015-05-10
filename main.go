@@ -22,29 +22,32 @@ import (
 	"os/exec"
 	"regexp"
 	"time"
+	"runtime"
+	"os"
 )
 
 const (
 	sessionCurrentDeployment = "cdid"
-	sessionName              = "gdp"
+	sessionName = "gdp"
 )
 
 var (
-	// API Version
+// API Version
 	ApiVersion = "1.0"
 
-	// Generic configuration
+// Generic configuration
 	host = env.Getenv("HOST", "")
 	port = env.Getenv("PORT", "7654")
 
 	envAppTtl = env.Getenv("APP_TTL", "30m")
 
-	// Configuration for CORS
+// Configuration for CORS
 	corsAllowOrigin = env.Getenv("CORS_ALLOW_ORIGIN", "http://localhost:9000")
 
 	sessionStore = gorillasession.NewCookieStore([]byte(env.Getenv("SESSION_SECRET", "changme")))
 
-	// MongoDB
+
+// MongoDB
 	envMongoPath = env.Getenv("MONGODB", "mongodb://localhost:27017/gitdeploy")
 )
 
@@ -82,7 +85,7 @@ func main() {
 	r.HandleFunc("/deployments", setCORSHeaders).Methods("OPTIONS")
 	r.HandleFunc("/deployments/{app:.+}/events", eventWrapperAction(sseBroker)).Methods("GET")
 	r.HandleFunc("/apps/{app:.+}", getAppHandler(storage)).Methods("GET")
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./app/")))
+	r.PathPrefix("/").HandlerFunc(publicHandler("./app/dist"))
 	http.Handle("/", r)
 
 	go job.KillAppsOnHitList(storage)
@@ -90,6 +93,34 @@ func main() {
 	listen := fmt.Sprintf("%s:%s", host, port)
 	log.Printf("Listening on %s", listen)
 	log.Fatal(http.ListenAndServe(listen, nil))
+}
+
+func publicHandler(dir string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := dir + r.URL.Path
+		if r.URL.Path == "/" {
+			path = dir + "/index.html"
+		}
+		pattern := `!\.html|\.js|\.svg|\.css|\.png|\.jpg$`
+
+		if f, err := os.Stat(path); err == nil {
+			if !f.IsDir() {
+				http.ServeFile(w, r, path)
+				return
+			} else {
+				http.Redirect(w, r, "/", 302)
+				return
+			}
+		}
+
+		if matched, err := regexp.MatchString(pattern, path); err != nil {
+			log.Printf("Could not exec regex: %s", err.Error())
+		} else if !matched {
+			http.Redirect(w, r, "/", 302)
+		} else {
+			http.NotFound(w, r)
+		}
+	}
 }
 
 func configHandler(w http.ResponseWriter, r *http.Request) {
@@ -296,10 +327,22 @@ func checkDependencies() {
 			log.Fatal("Git CLI is required but not installed or not in path.")
 		}
 	}()
-	go func() {
+	go checkIfFlynnExists()
+}
+
+func checkIfFlynnExists() {
+	func() {
 		_, err := exec.LookPath("flynn")
 		if err != nil {
-			log.Fatal("Flynn CLI is required but not installed or not in path.")
+			if runtime.GOOS == "windows" {
+				log.Fatal("Flynn CLI is required but not installed or not in path.")
+			}
+			log.Println("Could not find Flynn CLI, trying to install...")
+			if _, err := exec.Command("sh", "flynn.sh").CombinedOutput(); err != nil {
+				log.Printf("Could not install Flynn CLI: %s", err.Error())
+			} else if _, err := exec.LookPath("flynn"); err != nil {
+				log.Fatal("Could not install Flynn CLI.")
+			}
 		}
 	}()
 }
