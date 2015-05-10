@@ -40,15 +40,11 @@ Godir:
     github.com/user/myexample
 ```
 
-### 
+## Local gitdeploy
 
-## Contribute
+You need [Go](http://golang.org/) and [NodeJS](http://nodejs.org/) installed on your machine. Additionally, a MongoDB instance is required. You can set up a MongoDB instance using Docker:
 
-1. Install MongoDB
- - Windows / Mac OSX
-
-* [Virtualbox](https://www.virtualbox.org/)
-* [Boot2Docker](http://boot2docker.io/)
+**On Windows and Max OS X**, download and install [Virtualbox](https://www.virtualbox.org/) and [Boot2Docker](http://boot2docker.io/). Next run
 
 ```
 > boot2docker init
@@ -58,24 +54,38 @@ Godir:
 > docker run -d -p 27017:27017 library/mongo
 ```
 
- - Linux
+**On Linux*** download and install [Docker](https://www.docker.com/) and run `$ docker run -d -p 27017:27017 library/mongo`
 
-* [Docker](https://www.docker.com/)
+**IMPORTANT:** If you reboot the boot2docker-vm or the host you need to restart the container as well. You can get the container id by doing `docker ps -l` and start it by doing `docker start {id}` (replace {id} with id from `docker ps -l`).
+
+Almost done, now do in two separate terminals:
 
 ```
-$ docker run -d -p 27017:27017 library/mongo
+$ go run main.go
 ```
 
- - Rebooting
-If you reboot the VM you need to restart the container as well. You can get the container id by doing `docker ps -l` and start it by doing `docker start {id}` (replace {id} with id from `docker ps -l`).
+```
+$ cd app
+$ npm install -g grunt-cli bower yo generator-karma generator-angular
+$ npm install
+$ bower install
+$ grunt serve
+```
 
-- Install [http://golang.org/](Go).
-- Install [http://nodejs.org/](Nodejs).
-- Do
- ```
- $ cd app
- $ npm install -g grunt-cli bower yo generator-karma generator-angular
- $ npm install
- $ bower install
- $ grunt serve
- ```
+A window with Gitdeploy should open up automatically. If not, go to [localhost:9000](http://localhost:9000)
+
+### Production
+
+To run a production build, do:
+
+```
+$ cd app
+$ npm install -g grunt-cli bower yo generator-karma generator-angular
+$ npm install
+$ bower install
+$ grunt build
+$ cd ..
+$ go run main.go
+```
+
+Go to [localhost:7654](http://localhost:7654)
