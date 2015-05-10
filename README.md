@@ -44,7 +44,8 @@ Godir:
 
 ## Contribute
 
-Windows / Mac OSX
+1. Install MongoDB
+ - Windows / Mac OSX
 
 * [Virtualbox](https://www.virtualbox.org/)
 * [Boot2Docker](http://boot2docker.io/)
@@ -54,32 +55,27 @@ Windows / Mac OSX
 > VBoxManage modifyvm "boot2docker-vm" --natpf1 "guestmongodb,tcp,127.0.0.1,27017,,27017"
 > boot2docker start
 > boot2docker ssh
-> docker run -d -p 27017:27017 dockerfile/mongodb
+> docker run -d -p 27017:27017 library/mongo
 ```
 
-Linux
+ - Linux
 
 * [Docker](https://www.docker.com/)
 
 ```
-$ docker run -d -p 27017:27017 dockerfile/mongodb
+$ docker run -d -p 27017:27017 library/mongo
 ```
 
----
+ - Rebooting
+If you reboot the VM you need to restart the container as well. You can get the container id by doing `docker ps -l` and start it by doing `docker start {id}` (replace {id} with id from `docker ps -l`).
 
-**TBD**
-```
-git clone ...
-```
-
-### Configuration
-
-TBD
-
-### Things to note
-
-**Why we're using MongoDB**
-
-* Short lifetime of database items
-* No 100% consistency needed (neither logs nor apps)
-* Many writes to logs
+- Install [http://golang.org/](Go).
+- Install [http://nodejs.org/](Nodejs).
+- Do
+ ```
+ $ cd app
+ $ npm install -g grunt-cli bower yo generator-karma generator-angular
+ $ npm install
+ $ bower install
+ $ grunt serve
+ ```
