@@ -109,7 +109,7 @@ func publicHandler(dir string) func(http.ResponseWriter, *http.Request) {
 				http.ServeFile(w, r, path)
 				return
 			} else {
-				http.Redirect(w, r, "/", 302)
+                http.NotFound(w, r)
 				return
 			}
 		}
@@ -117,7 +117,8 @@ func publicHandler(dir string) func(http.ResponseWriter, *http.Request) {
 		if matched, err := regexp.MatchString(pattern, path); err != nil {
 			log.Printf("Could not exec regex: %s", err.Error())
 		} else if !matched {
-			http.Redirect(w, r, "/", 302)
+            http.ServeFile(w, r, dir + "/index.html")
+            return
 		} else {
 			http.NotFound(w, r)
 		}
