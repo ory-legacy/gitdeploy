@@ -350,7 +350,7 @@ func checkIfFlynnExists() {
             log.Println("Adding flynn cluster...")
             args := strings.Split(envClusterConf, " ")
             if o, err := exec.Command("flynn", append([]string{"cluster", "add"}, args...)...).CombinedOutput(); err != nil {
-                log.Printf("Could not add cluster (%s): %s", err.Error(), o)
+                log.Fatal("Could not add cluster (%s): %s %s", err.Error(), o, append([]string{"cluster", "add"}, args...))
             }
 		}
 	}()
