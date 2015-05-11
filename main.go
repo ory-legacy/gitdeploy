@@ -339,7 +339,7 @@ func checkIfFlynnExists() {
 				log.Fatal("Flynn CLI is required but not installed or not in path.")
 			}
 			log.Println("Could not find Flynn CLI, trying to install...")
-			if _, err := exec.Command("sh", "flynn.sh").CombinedOutput(); err != nil {
+			if _, err := exec.Command("sh", "bin/flynn-install.sh").CombinedOutput(); err != nil {
 				log.Printf("Could not install Flynn CLI: %s", err.Error())
 			} else if _, err := exec.LookPath("flynn"); err != nil {
 				log.Fatal("Could not install Flynn CLI.")

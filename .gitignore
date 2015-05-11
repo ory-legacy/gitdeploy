@@ -7,3 +7,5 @@ bower_components/
 tmp
 .DS_Store
 .idea
+bin/flynn-create.sh
+bin/flynn-push.sh
