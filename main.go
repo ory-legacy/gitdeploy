@@ -289,7 +289,7 @@ func runJobs(w http.ResponseWriter, r *http.Request, em *event.EventManager, dr 
 
 	cluster, err := job.GetCluster(em, app.ID)
 	if err != nil {
-		log.Printf("Error in job.deploy %s: %s", app.ID, err.Error())
+		log.Printf("Error in job.getCluster %s: %s", app.ID, err.Error())
 		return
 	}
 
