@@ -18,7 +18,7 @@ angular.module('gitdeployApp')
                             status: 0,
                             message: 'The backend service is unavailable. Either the network is down or there are temporary issues with the backend. Try again later.'
                         };
-                    } else if (rejection.data.error !== undefined && rejection.data.error.message !== undefined) {
+                    } else if (rejection.data !== undefined && rejection.data.error !== undefined && rejection.data.error.message !== undefined) {
                         $rootScope.error = {
                             status: rejection.status,
                             message: rejection.data.error.message
