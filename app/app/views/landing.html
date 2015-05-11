@@ -8,6 +8,7 @@
                     <img src="https://img.shields.io/badge/gitdeploy.io-deploy%20myapp/master-green.svg"
                          alt="gitdeploy.io">
                 </h3>
+
                 <h3>
                     Deploy your app to the cloud.
                 </h3>
@@ -43,7 +44,8 @@
             </div>
             <div class="modal-body">
                 <p>Copy the code into your clipboard and put it in your repositories README.md</p>
-                    <pre><code>[![Deploy {{repository.name}} via gitdeploy.io]({{ repository.badge }})]({{ repository.deployUrl }})</code></pre>
+                <pre><code>[![Deploy {{repository.name}} via gitdeploy.io]({{ repository.badge }})]({{
+                    repository.deployUrl }})</code></pre>
                 <img ng-src="{{ repository.badge }}" alt="gitdeploy.io">
             </div>
             <div class="modal-footer">
@@ -57,21 +59,25 @@
 
 <div ng-controller="ErrorCtrl" ng-include="'views/error.html'"></div>
 
-<div id="service" >
+<div id="service">
     <div class="container">
         <hr>
         <div class="row centered">
             <div class="col-md-4">
                 <i class="fa fa-cloud"></i>
                 <h4>FUTURE READY</h4>
+
                 <p>
-                    We're built on top of the next gen PaaS <a href="http://flynn.io">flynn.io</a> and are 100% virtualized.
-                    Our beta release is going to introduce a wide range of features, including modification of environment variables, service bindings (MongoDB, Postgres) and releasing Docker containers.
+                    We're built on top of the next gen PaaS <a href="http://flynn.io">flynn.io</a> and are 100%
+                    virtualized.
+                    Our beta release is going to introduce a wide range of features, including modification of
+                    environment variables, service bindings (MongoDB, Postgres) and releasing Docker containers.
                 </p>
             </div>
             <div class="col-md-4">
                 <i class="fa fa-book"></i>
                 <h4>DOCS</h4>
+
                 <p>
                     Check the <a href="/docs">docs</a> and to make your apps Gitdeploy ready.
                 </p>
@@ -79,6 +85,7 @@
             <div class="col-md-4">
                 <i class="fa fa-github"></i>
                 <h4>WE <span style="font-size: .8em;" class="fa fa-heart"></span> OPEN SOURCE</h4>
+
                 <p>
                     gitdeploy.io is free of charge for open source projects!
                 </p>

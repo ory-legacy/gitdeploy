@@ -20,7 +20,8 @@ angular
         'ngTouch'
     ])
     .config([
-        '$routeProvider', '$locationProvider', '$httpProvider', function ($routeProvider, $locationProvider, $httpProvider) {
+        '$routeProvider', '$locationProvider', '$httpProvider',
+        function ($routeProvider, $locationProvider, $httpProvider) {
             $httpProvider.interceptors.push('httpErrorInterceptor');
             $routeProvider.when('/', {
                 templateUrl: 'views/landing.html',

@@ -27,13 +27,14 @@ func New(database *mgo.Database) *MongoStorage {
 	return &MongoStorage{database}
 }
 
-func (s *MongoStorage) AddApp(app string, ttl time.Time, repository string) (a *storage.App, err error) {
+func (s *MongoStorage) AddApp(app string, ttl time.Time, repository, ip string) (a *storage.App, err error) {
 	a = &storage.App{
 		ID:         app,
 		ExpiresAt:  ttl,
 		CreatedAt:  time.Now(),
 		Killed:     false,
 		Repository: repository,
+        IP: ip,
 	}
 	err = s.db.C(appCollection).Insert(a)
 	return a, err

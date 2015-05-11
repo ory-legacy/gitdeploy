@@ -52,5 +52,7 @@ angular.module('gitdeployApp')
             $scope.data = [0, 0];
             $scope.colors = ['#DCDCDC', '#97BBCD']; // grey, blue
             $scope.noWebProcess = true;
+            $scope.newsletterMessage =
+                'You like Gitdeploy? Sign up to our newsletter and receive updates on new features!';
         }
     ]);

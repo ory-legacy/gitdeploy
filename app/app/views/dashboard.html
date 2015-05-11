@@ -3,6 +3,7 @@
         <div class="row">
             <div class="col-xs-12 text-center">
                 <h2>Dashboard</h2>
+
                 <h3><a ng-href="http://{{app.url}}" target="_blank">{{ app.url }}</a></h3>
             </div>
         </div>
@@ -24,7 +25,8 @@
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-xs-12">
-                            Your app was deployed successfully to <a ng-href="http://{{app.url}}" target="_blank">{{ app.url }}</a>!
+                            Your app was deployed successfully to <a ng-href="http://{{app.url}}" target="_blank">{{
+                            app.url }}</a>!
                         </div>
                     </div>
                 </div>
@@ -40,6 +42,7 @@
                     </div>
                 </div>
             </div>
+            <div ng-include="'views/mailchimp.html'"></div>
             <div class="panel panel-default">
                 <div class="panel-heading">
                     Monitor
@@ -125,8 +128,7 @@
                 <div class="panel-body">
                     <p>
                         <strong>Something doesn't work? Check the logs for errors!</strong> If you think you've found a
-                        bug, head over to our
-                        <a href="https://github.com/ory-am/gitdeploy">GitHub</a> and create an issue.
+                        bug, <a href="/contact">drop us an email</a>.
                     </p>
                     <hr>
                     <div class="row">

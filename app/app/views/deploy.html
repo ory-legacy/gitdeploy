@@ -10,6 +10,7 @@
 
 <div ng-controller="ErrorCtrl" ng-include="error.html"></div>
 
+
 <div id="service" class="">
     <div class="container">
         <div class="row">
@@ -27,8 +28,8 @@
                     <div class="row">
                         <div class="col-xs-12">
                             {{ error }}<br>
-                            <a href="/">Go back</a> or create an issue on our <a
-                                href="https://github.com/ory-am/gitdeploy/issues">GitHub</a>.
+                            <a href="/">Go back</a> or <a
+                                href="/contact">contact us</a>.
                         </div>
                     </div>
                     <hr>
@@ -42,10 +43,12 @@
                     <div class="panel panel-default">
                         <div class="panel-body">
                             I'm deploying your app. This might take a minute or two.
-                            If problems occur, copy the logs and create a new issue
-                            on our <a href="https://github.com/ory-am/gitdeploy/issues">GitHub</a>.
+                            If problems occur, copy the logs and <a href="/contact">mail them to us</a>.
                         </div>
                     </div>
+
+                    <div ng-include="'views/mailchimp.html'"></div>
+
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h3>

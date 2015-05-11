@@ -13,7 +13,8 @@ angular.module('gitdeployApp')
             return {
                 getApp: function (id) {
                     return new Promise(function (resolve, reject) {
-                        $http.get(endpoint.apps + '/apps/' + id, {withCredentials: true}).success(resolve).error(reject);
+                        $http.get(endpoint.apps + '/apps/' + id,
+                            {withCredentials: true}).success(resolve).error(reject);
                     });
                 }
             };

@@ -24,6 +24,7 @@ import (
 	"time"
 	"runtime"
 	"os"
+    "strings"
 )
 
 const (
@@ -242,7 +243,7 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 		responseError(w, http.StatusInternalServerError, err.Error())
 		return
 	} else {
-		appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository)
+		appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository, getIP(r))
 		if err != nil {
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -345,4 +346,20 @@ func checkIfFlynnExists() {
 			}
 		}
 	}()
+}
+
+func getIP(r *http.Request) string {
+    ip := removePort(r.RemoteAddr)
+    if len(r.Header.Get("X-FORWARDED-FOR")) > 0 {
+        ip = r.Header.Get("X-FORWARDED-FOR")
+    }
+    return ip
+}
+
+func removePort(ip string) string {
+    split := strings.Split(ip, ":")
+    if len(split) < 2 {
+        return ip
+    }
+    return strings.Join(split[:len(split)-1], ":")
 }
