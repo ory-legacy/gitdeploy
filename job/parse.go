@@ -55,6 +55,15 @@ func Parse(em *event.EventManager, app, sourcePath string) error {
 
 	if commit {
 		em.Trigger(eventName, gde.New(app, "Commiting changes..."))
+        em.Trigger(eventName, gde.New(app, "Setting git user..."))
+        if err := runGitCommand(em, app, sourcePath, "config", "user.name", "gitdeploy"); err != nil {
+            em.Trigger(eventName, gde.New(app, "ERROR in git config user.name!"))
+            return err
+        }
+        if err := runGitCommand(em, app, sourcePath, "config", "user.email", "hello@gitdeploy.io"); err != nil {
+            em.Trigger(eventName, gde.New(app, "ERROR in git config user.email!"))
+            return err
+        }
 		if err := runGitCommand(em, app, sourcePath, "commit", "-a", "-m", "gitdeploy"); err != nil {
 			em.Trigger(eventName, gde.New(app, "ERROR in git commit!"))
 			return err
