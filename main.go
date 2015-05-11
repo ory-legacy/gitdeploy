@@ -41,6 +41,7 @@ var (
 	port = env.Getenv("PORT", "7654")
 
 	envAppTtl = env.Getenv("APP_TTL", "30m")
+    envClusterConf = env.Getenv("FLYNN_CLUSTER_CONFIG", "")
 
 // Configuration for CORS
 	corsAllowOrigin = env.Getenv("CORS_ALLOW_ORIGIN", "http://localhost:9000")
@@ -346,6 +347,11 @@ func checkIfFlynnExists() {
 				log.Fatal("Could not install Flynn CLI.")
 			}
             log.Println("Flynn installed successfully!")
+            log.Println("Adding flynn cluster...")
+            args := strings.Split(envClusterConf, " ")
+            if o, err := exec.Command("flynn", append([]string{"cluster", "add"}, args...)...).CombinedOutput(); err != nil {
+                log.Printf("Could not add cluster (%s): %s", err.Error(), o)
+            }
 		}
 	}()
 }
