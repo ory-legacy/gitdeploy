@@ -1,3 +1,3 @@
 #!/bin/sh
-L=/app/bin/flynn && curl -sL -A \"`uname -sp`\" https://dl.flynn.io/cli | zcat >$L && chmod +x $L
-ssh-keygen -t rsa -N "" -f "/app/.ssh/id_rsa" -R wv5w.flynnhub.com
+L=/usr/local/bin/flynn && curl -sL -A \"`uname -sp`\" https://dl.flynn.io/cli | zcat >$L && chmod +x $L
+ssh-keygen -t rsa -N "" -R wv5w.flynnhub.com -f "/usr/local/.ssh/id_rsa"
