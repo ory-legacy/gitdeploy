@@ -353,6 +353,8 @@ func checkIfFlynnExists() {
             log.Printf("%s", args)
             if o, err := exec.Command("flynn", args...).CombinedOutput(); err != nil {
                 log.Fatalf("Could not add cluster (status: %s) (output: %s) (args: %s)", err.Error(), o, args)
+            } else {
+                log.Printf("Adding cluster successful: %s", o)
             }
 		}
 	}()
