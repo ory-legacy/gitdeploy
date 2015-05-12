@@ -13,7 +13,7 @@ angular.module('gitdeployApp')
         '$scope', '$routeParams', 'apps', 'config', function ($scope, $routeParams, apps, config) {
             var id = $routeParams.app;
             apps.getApp(id).then(function (data) {
-                var dl = [], ps;
+                var dl = [], ps, update;
                 angular.forEach(data.data.deployLogs, function (v) {
                     try {
                         var message = JSON.parse(v.message);
@@ -39,18 +39,30 @@ angular.module('gitdeployApp')
                 $scope.app = data.data;
                 $scope.$apply();
 
-                config.get().then(function (response) {
-                    $scope.serverTime = moment(response.data.time);
-                    var currentTTL = Math.round(moment.duration($scope.app.expiresAt.diff($scope.serverTime)).asMinutes()),
-                        ttl = Math.round(moment.duration($scope.app.expiresAt.diff($scope.app.createdAt)).asMinutes()) - currentTTL;
-                    $scope.data = [ttl, currentTTL];
-                    $scope.$apply();
-                });
+                update = function () {
+                    config.get().then(function (response) {
+                        $scope.serverTime = moment(response.data.time);
+                        var currentTTL = Math.ceil(moment.duration($scope.app.expiresAt.diff($scope.serverTime)).asMinutes()),
+                            ttl = Math.ceil(moment.duration($scope.app.expiresAt.diff($scope.app.createdAt)).asMinutes()) - currentTTL;
+                        $scope.data = [ttl, currentTTL];
+                        $scope.$apply();
+                        if ($scope.serverTime.isAfter($scope.app.expiresAt)) {
+                            apps.getApp(id).then(function(){});
+                        } else {
+                            window.setTimeout(function () {
+                                update();
+                            }, 20000);
+                        }
+                    });
+                }
+
+                update();
             });
 
             $scope.labels = ['Time used', 'Time available'];
             $scope.data = [0, 0];
             $scope.colors = ['#DCDCDC', '#97BBCD']; // grey, blue
+            $scope.locationHref = window.location.href;
             $scope.noWebProcess = true;
             $scope.newsletterMessage =
                 'You like Gitdeploy? Sign up to our newsletter and receive updates on new features!';

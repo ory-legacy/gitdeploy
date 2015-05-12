@@ -141,14 +141,16 @@ module.exports = function (grunt) {
         // Empties folders to start fresh
         clean: {
             dist: {
-                files: [{
-                    dot: true,
-                    src: [
-                        '.tmp',
-                        '<%= yeoman.dist %>/{,*/}*',
-                        '!<%= yeoman.dist %>/.git{,*/}*'
-                    ]
-                }]
+                files: [
+                    {
+                        dot: true,
+                        src: [
+                            '.tmp',
+                            '<%= yeoman.dist %>/{,*/}*',
+                            '!<%= yeoman.dist %>/.git{,*/}*'
+                        ]
+                    }
+                ]
             },
             server: '.tmp'
         },
@@ -162,20 +164,24 @@ module.exports = function (grunt) {
                 options: {
                     map: true,
                 },
-                files: [{
-                    expand: true,
-                    cwd: '.tmp/styles/',
-                    src: '{,*/}*.css',
-                    dest: '.tmp/styles/'
-                }]
+                files: [
+                    {
+                        expand: true,
+                        cwd: '.tmp/styles/',
+                        src: '{,*/}*.css',
+                        dest: '.tmp/styles/'
+                    }
+                ]
             },
             dist: {
-                files: [{
-                    expand: true,
-                    cwd: '.tmp/styles/',
-                    src: '{,*/}*.css',
-                    dest: '.tmp/styles/'
-                }]
+                files: [
+                    {
+                        expand: true,
+                        cwd: '.tmp/styles/',
+                        src: '{,*/}*.css',
+                        dest: '.tmp/styles/'
+                    }
+                ]
             }
         },
 
@@ -258,7 +264,9 @@ module.exports = function (grunt) {
                 flow: {
                     html: {
                         steps: {
-                            js: ['concat', 'uglifyjs'],
+                            js: [
+                                'concat', 'uglifyjs'
+                            ],
                             css: ['cssmin']
                         },
                         post: {}
@@ -284,47 +292,51 @@ module.exports = function (grunt) {
         // By default, your `index.html`'s <!-- Usemin block --> will take care of
         // minification. These next options are pre-configured if you do not wish
         // to use the Usemin blocks.
-        // cssmin: {
-        //   dist: {
-        //     files: {
-        //       '<%= yeoman.dist %>/styles/main.css': [
-        //         '.tmp/styles/{,*/}*.css'
-        //       ]
-        //     }
-        //   }
-        // },
-        // uglify: {
-        //   dist: {
-        //     files: {
-        //       '<%= yeoman.dist %>/scripts/scripts.js': [
-        //         '<%= yeoman.dist %>/scripts/scripts.js'
-        //       ]
-        //     }
-        //   }
-        // },
-        // concat: {
-        //   dist: {}
-        // },
+        //        cssmin: {
+        //            dist: {
+        //                files: {
+        //                    '<%= yeoman.dist %>/styles/main.css': [
+        //                        '.tmp/styles/{,*/}*.css'
+        //                    ]
+        //                }
+        //            }
+        //        },
+        //        uglify: {
+        //            dist: {
+        //                files: {
+        //                    '<%= yeoman.dist %>/scripts/scripts.js': [
+        //                        '<%= yeoman.dist %>/scripts/scripts.js'
+        //                    ]
+        //                }
+        //            }
+        //        },
+        //        concat: {
+        //            dist: {}
+        //        },
 
         imagemin: {
             dist: {
-                files: [{
-                    expand: true,
-                    cwd: '<%= yeoman.app %>/images',
-                    src: '{,*/}*.{png,jpg,jpeg,gif}',
-                    dest: '<%= yeoman.dist %>/images'
-                }]
+                files: [
+                    {
+                        expand: true,
+                        cwd: '<%= yeoman.app %>/images',
+                        src: '{,*/}*.{png,jpg,jpeg,gif}',
+                        dest: '<%= yeoman.dist %>/images'
+                    }
+                ]
             }
         },
 
         svgmin: {
             dist: {
-                files: [{
-                    expand: true,
-                    cwd: '<%= yeoman.app %>/images',
-                    src: '{,*/}*.svg',
-                    dest: '<%= yeoman.dist %>/images'
-                }]
+                files: [
+                    {
+                        expand: true,
+                        cwd: '<%= yeoman.app %>/images',
+                        src: '{,*/}*.svg',
+                        dest: '<%= yeoman.dist %>/images'
+                    }
+                ]
             }
         },
 
@@ -337,12 +349,14 @@ module.exports = function (grunt) {
                     removeCommentsFromCDATA: true,
                     removeOptionalTags: true
                 },
-                files: [{
-                    expand: true,
-                    cwd: '<%= yeoman.dist %>',
-                    src: ['*.html', 'views/{,*/}*.html'],
-                    dest: '<%= yeoman.dist %>'
-                }]
+                files: [
+                    {
+                        expand: true,
+                        cwd: '<%= yeoman.dist %>',
+                        src: ['*.html', 'views/{,*/}*.html'],
+                        dest: '<%= yeoman.dist %>'
+                    }
+                ]
             }
         },
 
@@ -350,12 +364,14 @@ module.exports = function (grunt) {
         // by using the Angular long form for dependency injection.
         ngAnnotate: {
             dist: {
-                files: [{
-                    expand: true,
-                    cwd: '.tmp/concat/scripts',
-                    src: '*.js',
-                    dest: '.tmp/concat/scripts'
-                }]
+                files: [
+                    {
+                        expand: true,
+                        cwd: '.tmp/concat/scripts',
+                        src: '*.js',
+                        dest: '.tmp/concat/scripts'
+                    }
+                ]
             }
         },
 
@@ -369,30 +385,34 @@ module.exports = function (grunt) {
         // Copies remaining files to places other tasks can use
         copy: {
             dist: {
-                files: [{
-                    expand: true,
-                    dot: true,
-                    cwd: '<%= yeoman.app %>',
-                    dest: '<%= yeoman.dist %>',
-                    src: [
-                        '*.{ico,png,txt}',
-                        '.htaccess',
-                        '*.html',
-                        'views/{,*/}*.html',
-                        'images/{,*/}*.{webp}',
-                        'styles/fonts/{,*/}*.*'
-                    ]
-                }, {
-                    expand: true,
-                    cwd: '.tmp/images',
-                    dest: '<%= yeoman.dist %>/images',
-                    src: ['generated/*']
-                }, {
-                    expand: true,
-                    cwd: 'bower_components/components-font-awesome/fonts',
-                    src: '*',
-                    dest: '<%= yeoman.dist %>/fonts'
-                }]
+                files: [
+                    {
+                        expand: true,
+                        dot: true,
+                        cwd: '<%= yeoman.app %>',
+                        dest: '<%= yeoman.dist %>',
+                        src: [
+                            '*.{ico,png,txt}',
+                            '.htaccess',
+                            '*.html',
+                            'views/{,*/}*.html',
+                            'images/{,*/}*.{webp}',
+                            'styles/fonts/{,*/}*.*'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        cwd: '.tmp/images',
+                        dest: '<%= yeoman.dist %>/images',
+                        src: ['generated/*']
+                    },
+                    {
+                        expand: true,
+                        cwd: 'bower_components/components-font-awesome/fonts',
+                        src: '*',
+                        dest: '<%= yeoman.dist %>/fonts'
+                    }
+                ]
             },
             styles: {
                 expand: true,
@@ -425,7 +445,6 @@ module.exports = function (grunt) {
             }
         }
     });
-
 
     grunt.registerTask('serve', 'Compile then start a connect web server', function (target) {
         if (target === 'dist') {

@@ -111,6 +111,7 @@ func (s *MongoStorage) AttachAggregate(em *event.EventManager) {
 	em.AttachListener("app.created", s)
 	em.AttachListener("app.deployed", s)
 	em.AttachListener("jobs.cluster", s)
+    em.AttachListener("jobs.cleanup", s)
 }
 
 func ensureIndex(c *mgo.Collection, i mgo.Index) {

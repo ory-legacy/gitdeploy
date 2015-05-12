@@ -34,6 +34,7 @@ angular.module('gitdeployApp')
             $scope.logs = [];
             $scope.app = '';
             $scope.deploying = false;
+            $scope.retryUrl = window.location.href;
             $scope.newsletterMessage =
                 'Get a cup of coffee or sign up to our newsletter while you\'re waiting for the deployment to finish.';
 

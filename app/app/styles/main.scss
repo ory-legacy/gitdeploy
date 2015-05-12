@@ -98,18 +98,6 @@ a:focus {
   color: $site-colors-link-hover;;
 }
 
-::-moz-selection {
-  color: #fff;
-  text-shadow: none;
-  background: $site-colors-secondary;;
-}
-
-::selection {
-  color: #fff;
-  text-shadow: none;
-  background: $site-colors-secondary;;
-}
-
 .centered {
   text-align: center
 }

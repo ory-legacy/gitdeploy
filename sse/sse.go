@@ -36,7 +36,15 @@ type channel struct {
 	defunctClients chan chan *storage.DeployEvent
 }
 
+func (b *Broker) IsChannelOpen(name string) bool {
+    _, ok := b.channels[name]
+    return ok
+}
+
 func (b *Broker) OpenChannel(name string) *channel {
+    if b.IsChannelOpen(name) {
+        return b.channels[name]
+    }
 	c := &channel{
 		make(map[chan *storage.DeployEvent]bool),
 		make(chan (chan *storage.DeployEvent)),

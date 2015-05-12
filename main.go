@@ -220,10 +220,14 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 	if v, ok := session.Values[sessionCurrentDeployment].(string); ok && len(v) > 0 {
 		app, err := store.GetApp(v)
 		if err != nil {
-			cleanUpSession(w, r)
-			log.Printf("Could not fetch app from cookie: %s", err.Error())
+            cleanUpSession(w, r)
+            log.Printf("Could not fetch app from cookie: %s", err.Error())
+        } else if !sseBroker.IsChannelOpen(app.ID) {
+            cleanUpSession(w, r)
+            log.Printf("Channel %s does not exist any more", app.ID)
 		} else {
 			responseSuccess(w, app)
+            return
 		}
 	}
 
@@ -265,7 +269,7 @@ func runJobs(w http.ResponseWriter, r *http.Request, em *event.EventManager, dr 
 	sseBroker.Start(app.ID)
 	defer func() {
 		// Give the client the chance to read the output...
-		time.Sleep(2 * time.Minute)
+		time.Sleep(15 * time.Second)
 		sseBroker.CloseChannel(app.ID)
 	}()
 
@@ -299,6 +303,11 @@ func runJobs(w http.ResponseWriter, r *http.Request, em *event.EventManager, dr 
 		log.Printf("Error %s: %s", app.ID, err.Error())
 		return
 	}
+
+    if err = job.Cleanup(em, app.ID, destination); err != nil {
+        log.Printf("Error in job.cleanup %s: %s", app.ID, err.Error())
+        return
+    }
 
 	log.Println("Deployment successful.")
 	em.Trigger("app.deployed", gde.New(app.ID, app.URL))
