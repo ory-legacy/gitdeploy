@@ -17,14 +17,19 @@ const (
 )
 
 type MongoStorage struct {
-	db *mgo.Database
+	session *mgo.Session
+	database string
 }
 
 // NewUserStorage creates a new database session for storing users
-func New(database *mgo.Database) *MongoStorage {
-	ensureIndex(database.C(appCollection), mgo.Index{Key: []string{"id"}, Unique: true})
-	ensureIndex(database.C(appDeployLogCollection), mgo.Index{Key: []string{"id"}, Unique: true})
-	return &MongoStorage{database}
+func New(session *mgo.Session, database string) *MongoStorage {
+	s := &MongoStorage{
+		session: session,
+		database: database,
+	}
+	s.ensureUnique(appCollection, []string{"id"})
+	s.ensureUnique(appDeployLogCollection, []string{"id"})
+	return s
 }
 
 func (s *MongoStorage) AddApp(app string, ttl time.Time, repository, ip string) (a *storage.App, err error) {
@@ -36,12 +41,12 @@ func (s *MongoStorage) AddApp(app string, ttl time.Time, repository, ip string) 
 		Repository: repository,
         IP: ip,
 	}
-	err = s.db.C(appCollection).Insert(a)
+	err = s.getCollection(appCollection).Insert(a)
 	return a, err
 }
 
 func (s *MongoStorage) UpdateApp(app *storage.App) error {
-	return s.db.C(appCollection).Update(bson.M{"id": app.ID}, app)
+	return s.getCollection(appCollection).Update(bson.M{"id": app.ID}, app)
 }
 
 func (s *MongoStorage) AddDeployEvent(app, message string) (*storage.DeployEvent, error) {
@@ -52,22 +57,22 @@ func (s *MongoStorage) AddDeployEvent(app, message string) (*storage.DeployEvent
 		Timestamp: time.Now(),
 		Unread:    true,
 	}
-	return e, s.db.C(appDeployLogCollection).Insert(e)
+	return e, s.getCollection(appDeployLogCollection).Insert(e)
 }
 
 func (s *MongoStorage) GetApp(id string) (app *storage.App, err error) {
-	err = s.db.C(appCollection).Find(bson.M{"id": id}).One(&app)
+	err = s.getCollection(appCollection).Find(bson.M{"id": id}).One(&app)
 	return app, err
 }
 
 func (s *MongoStorage) FindDeployLogsForApp(app string) (e []*storage.DeployEvent, err error) {
-	err = s.db.C(appDeployLogCollection).Find(bson.M{"app": app}).All(&e)
+	err = s.getCollection(appDeployLogCollection).Find(bson.M{"app": app}).All(&e)
 	return e, err
 }
 
 func (s *MongoStorage) GetNextUnreadDeployEvent(app string) (e *storage.DeployEvent, err error) {
 	e = new(storage.DeployEvent)
-	err = s.db.C(appDeployLogCollection).Find(bson.M{
+	err = s.getCollection(appDeployLogCollection).Find(bson.M{
 		"app":    app,
 		"unread": true,
 	}).Sort("+timestamp").One(e)
@@ -75,7 +80,7 @@ func (s *MongoStorage) GetNextUnreadDeployEvent(app string) (e *storage.DeployEv
 }
 
 func (s *MongoStorage) FindAppsOnKillList() (apps []*storage.App, err error) {
-	err = s.db.C(appCollection).Find(bson.M{
+	err = s.getCollection(appCollection).Find(bson.M{
 		"expiresat": bson.M{
 			"$lt": time.Now(),
 		},
@@ -86,12 +91,12 @@ func (s *MongoStorage) FindAppsOnKillList() (apps []*storage.App, err error) {
 
 func (s *MongoStorage) KillApp(app *storage.App) (err error) {
 	app.Killed = true
-	return s.db.C(appCollection).Update(bson.M{"id": app.ID}, app)
+	return s.getCollection(appCollection).Update(bson.M{"id": app.ID}, app)
 }
 
 func (s *MongoStorage) DeployEventIsRead(e *storage.DeployEvent) error {
 	e.Unread = false
-	return s.db.C(appDeployLogCollection).Update(bson.M{"id": e.ID}, e)
+	return s.getCollection(appDeployLogCollection).Update(bson.M{"id": e.ID}, e)
 }
 
 func (s *MongoStorage) Trigger(name string, data interface{}) {
@@ -114,8 +119,13 @@ func (s *MongoStorage) AttachAggregate(em *event.EventManager) {
     em.AttachListener("jobs.cleanup", s)
 }
 
-func ensureIndex(c *mgo.Collection, i mgo.Index) {
-	if err := c.EnsureIndex(i); err != nil {
+func (s *MongoStorage) getCollection(name string) *mgo.Collection {
+	return s.session.DB(s.database).C(name)
+}
+
+func (s *MongoStorage) ensureUnique(collection string, keys []string) {
+	c := s.getCollection(collection)
+	if err := c.EnsureIndex(mgo.Index{Key: keys, Unique: true}); err != nil {
 		log.Fatalf("Could not ensure index: %s", err)
 	}
 }

@@ -66,12 +66,12 @@ func main() {
 	eventManager := event.New()
 
 	// mgo
-	mongoDatabase, err := mgopath.Connect(envMongoPath)
+	db, dbName, err := mgopath.Connect(envMongoPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	storage := mongo.New(mongoDatabase)
+	storage := mongo.New(db, dbName)
 	eventManager.AttachListenerAggregate(storage)
 
 	// SSE broker
