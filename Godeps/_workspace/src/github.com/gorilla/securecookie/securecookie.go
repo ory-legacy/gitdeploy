@@ -196,7 +196,7 @@ func (s *SecureCookie) Decode(name, value string, dst interface{}) error {
 	// 3. Verify MAC. Value is "date|value|mac".
 	parts := bytes.SplitN(b, []byte("|"), 3)
 	if len(parts) != 3 {
-		return errors.New("securecookie: invalid value %v")
+		return ErrMacInvalid
 	}
 	h := hmac.New(s.hashFunc, s.hashKey)
 	b = append([]byte(name+"|"), b[:len(b)-len(parts[2])-1]...)
@@ -255,7 +255,7 @@ func createMac(h hash.Hash, value []byte) []byte {
 // verifyMac verifies that a message authentication code (MAC) is valid.
 func verifyMac(h hash.Hash, value []byte, mac []byte) error {
 	mac2 := createMac(h, value)
-	if len(mac) == len(mac2) && subtle.ConstantTimeCompare(mac, mac2) == 1 {
+	if subtle.ConstantTimeCompare(mac, mac2) == 1 {
 		return nil
 	}
 	return ErrMacInvalid
@@ -340,9 +340,9 @@ func decode(value []byte) ([]byte, error) {
 
 // Helpers --------------------------------------------------------------------
 
-// GenerateRandomKey creates a random key with the given strength.
-func GenerateRandomKey(strength int) []byte {
-	k := make([]byte, strength)
+// GenerateRandomKey creates a random key with the given length in bytes.
+func GenerateRandomKey(length int) []byte {
+	k := make([]byte, length)
 	if _, err := io.ReadFull(rand.Reader, k); err != nil {
 		return nil
 	}
@@ -375,11 +375,11 @@ func EncodeMulti(name string, value interface{}, codecs ...Codec) (string, error
 
 	var errors MultiError
 	for _, codec := range codecs {
-		if encoded, err := codec.Encode(name, value); err == nil {
+		encoded, err := codec.Encode(name, value)
+		if err == nil {
 			return encoded, nil
-		} else {
-			errors = append(errors, err)
 		}
+		errors = append(errors, err)
 	}
 	return "", errors
 }
@@ -395,11 +395,11 @@ func DecodeMulti(name string, value string, dst interface{}, codecs ...Codec) er
 
 	var errors MultiError
 	for _, codec := range codecs {
-		if err := codec.Decode(name, value, dst); err == nil {
+		err := codec.Decode(name, value, dst)
+		if err == nil {
 			return nil
-		} else {
-			errors = append(errors, err)
 		}
+		errors = append(errors, err)
 	}
 	return errors
 }

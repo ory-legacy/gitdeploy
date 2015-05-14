@@ -6,9 +6,10 @@ package sessions
 
 import (
 	"encoding/base32"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -123,9 +124,6 @@ func NewFilesystemStore(path string, keyPairs ...[]byte) *FilesystemStore {
 	if path == "" {
 		path = os.TempDir()
 	}
-	if path[len(path)-1] != '/' {
-		path += "/"
-	}
 	return &FilesystemStore{
 		Codecs: securecookie.CodecsFromPairs(keyPairs...),
 		Options: &Options{
@@ -215,40 +213,20 @@ func (s *FilesystemStore) save(session *Session) error {
 	if err != nil {
 		return err
 	}
-	filename := s.path + "session_" + session.ID
+	filename := filepath.Join(s.path, "session_"+session.ID)
 	fileMutex.Lock()
 	defer fileMutex.Unlock()
-	fp, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return err
-	}
-	if _, err = fp.Write([]byte(encoded)); err != nil {
-		return err
-	}
-	fp.Close()
-	return nil
+	return ioutil.WriteFile(filename, []byte(encoded), 0600)
 }
 
 // load reads a file and decodes its content into session.Values.
 func (s *FilesystemStore) load(session *Session) error {
-	filename := s.path + "session_" + session.ID
-	fp, err := os.OpenFile(filename, os.O_RDONLY, 0400)
+	filename := filepath.Join(s.path, "session_"+session.ID)
+	fileMutex.RLock()
+	defer fileMutex.RUnlock()
+	fdata, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
-	}
-	defer fp.Close()
-	var fdata []byte
-	buf := make([]byte, 128)
-	for {
-		var n int
-		n, err = fp.Read(buf[0:])
-		fdata = append(fdata, buf[0:n]...)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return err
-		}
 	}
 	if err = securecookie.DecodeMulti(session.Name(), string(fdata),
 		&session.Values, s.Codecs...); err != nil {
