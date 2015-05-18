@@ -58,11 +58,15 @@ You need [Go](http://golang.org/) and [NodeJS](http://nodejs.org/) installed on 
 
 **IMPORTANT:** If you reboot the boot2docker-vm or the host you need to restart the container as well. You can get the container id by doing `docker ps -l` and start it by doing `docker start {id}` (replace {id} with id from `docker ps -l`).
 
-Almost done, now do in two separate terminals:
+Next thing you need is a flynn cluster. First, install the [Flynn cli](https://github.com/flynn/flynn/tree/master/cli), second run `flynn install` in your console and follow the instructions.
+
+Now you're almost done. Run in two separate terminals:
 
 ```
 $ go run main.go
 ```
+
+and
 
 ```
 $ cd app
@@ -89,4 +93,3 @@ $ go run main.go
 ```
 
 Go to [localhost:7654](http://localhost:7654)
-
