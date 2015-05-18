@@ -90,8 +90,3 @@ $ go run main.go
 
 Go to [localhost:7654](http://localhost:7654)
 
-## More examples
-
-- https://github.com/amirrajan/nodekick (mongodb)
-- https://github.com/ccoenraets/nodecellar (mongodb - build fails due to outdated node version)
-- https://github.com/publify/publify (build failes due to `Gemfile.lock required. Please check it in`)
