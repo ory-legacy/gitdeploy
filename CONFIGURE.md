@@ -1,22 +1,23 @@
 ```yml
-# Set the config version (MANDATORY)
-version: 0.1
+#This file defines the GitDeploy configuration settings. 
+#Declare the configuration's version number (MANDATORY)
+GDVersion: 0.1
 
-# Use a custom Buildpack (OPTIONAL)
-buildpack: https://github.com/ddollar/heroku-buildpack-multi.git
+# Declare custom Buildpack (OPTIONAL)
+GDBuildpack: https://github.com/ddollar/heroku-buildpack-multi.git
 
-# Set environment variables (OPTIONAL)
+# Set environment variables (OPTIONAL) @arekkas: are these just taken from local env, or are they specific to GD?
 # Warning: Variables called HOST and PORT will be ignored
-env:
+GDEnv:
     # $FOO=bar
     foo: bar
     # $BAZ=foo
     baz: foo
     
 # Attach services (OPTIONAL)
-addons:
+GDAddons:
     MongoDB:
-        # Require a specific MongoDB version (RECOMMENDED) (DEFAULT: 3.0)
+        # Requires a specific MongoDB version (RECOMMENDED) (DEFAULT: 3.0)
         version: 3.0
         # Set up environment variable bindings
         # Warning: Variables called HOST and PORT will be ignored
@@ -42,13 +43,13 @@ addons:
 # Specify processes (RECOMMENDED)
 # MANDATORY for Go applications
 # OPTIONAL for Node applications
-procs:
-    # The web process is accessible through http (RECOMMENDED)
+GDProcs:
+    # The web process accessible through http (RECOMMENDED)
     web: myexample
     # Specify additional processes. Keys are arbitrary (OPTIONAL)
     worker: myworker
     clock: myclock
 
-# Specify the go directory (RECOMMENDED for Go Applications)
-godir: github.com/user/myexample
+# Specify the go directory (RECOMMENDED for Go Applications). Default is export GDGodir = "$GOPATH"
+GDGodir: github.com/user/myexample
 ```
