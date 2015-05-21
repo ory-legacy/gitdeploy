@@ -66,6 +66,8 @@ addons:
 procs:
     # The web process accessible through http (RECOMMENDED)
     web: myexample
+    # If it's a node app, this could look like:
+    # web: node server.js
     # Specify additional processes. Keys are arbitrary (OPTIONAL)
     worker: myworker
     clock: myclock
