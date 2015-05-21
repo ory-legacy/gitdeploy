@@ -19,20 +19,20 @@
     </div>
 </div>
 
-<div class="col-lg-4 col-lg-offset-4 himg offset-bottom-2">
+<form ng-submit="showIntegration($event);" class="col-lg-4 col-lg-offset-4 himg offset-bottom-2">
     <div class="form-group">
         <label class="sr-only" for="repositoryUrl">GitHub repository</label>
 
         <div class="input-group">
             <div class="input-group-addon"><span class="fa fa-github"></span></div>
-            <input required pattern="(http|https)\:\/\/github\.com\/[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-]+\.git"
+            <input required pattern="(http|https)\:\/\/github\.com\/[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-\.]+\.git"
                    ng-model="repository.url" aria-describedby="helpBlock" type="text" length="30"
                    class="form-control input-lg" id="repositoryUrl"
                    placeholder="https://github.com/your/repository.git">
         </div>
     </div>
-    <button ng-click="showIntegration($event);" class="btn btn-lg btn-block btn-success">Deploy now</button>
-</div>
+    <button type="submit" class="btn btn-lg btn-block btn-success">Deploy now</button>
+</form>
 
 <div class="modal fade text-left" id="shieldModal">
     <div class="modal-dialog">
