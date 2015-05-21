@@ -237,7 +237,7 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 	decoder.Decode(dr)
 
 	// Validate URL
-	regExpression := "(https|http):\\/\\/github\\.com\\/[a-zA-Z0-9\\-\\_]+/[a-zA-Z0-9\\-\\_]+\\.git"
+	regExpression := "(https|http):\\/\\/github\\.com\\/[a-zA-Z0-9\\-\\_\\.]+/[a-zA-Z0-9\\-\\_\\.]+\\.git"
 	if match, _ := regexp.MatchString(regExpression, dr.Repository); !match {
 		responseError(w, http.StatusBadRequest, "I only support GitHub.")
 		return
