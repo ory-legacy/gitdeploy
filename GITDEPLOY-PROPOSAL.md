@@ -30,6 +30,13 @@ addons:
         port: MGO_PORT
         db: MGO_DB
         url: MGO_URL
+        # In this case, the environment variables could look like (these are examplary values!):
+        # $MGO_USER = fgu38gak4584
+        # $MGO_PW = gjk259agjg8
+        # $MGO_HOST = mongodb.gitdeploy.io
+        # $MGO_PORT = 27017
+        # $MGO_DB = uihg0w9834tpi
+        # $MGO_URL = mongodb://fgu38gak4584:gjk259agjg8@mongodb.gitdeploy.io:27017/uihg0w9834tpi
         
     Postgres:
         # Require a specific MongoDB version (RECOMMENDED) (DEFAULT: 9.4)
@@ -45,6 +52,13 @@ addons:
         port: PG_PORT
         db: PG_DB
         url: PG_URL
+        # In this case, the environment variables could look like (these are examplary values!):
+        # $PG_USER = gh57whe456ujdxj
+        # $PG_PW = 5zrur6kf
+        # $PG_HOST = postgres.gitdeploy.io
+        # $PG_PORT = 5432
+        # $PG_DB = kg0923ruhe45
+        # $PG_URL = mongodb://gh57whe456ujdxj:5zrur6kf@postgres.gitdeploy.io:5432/kg0923ruhe45
         
 # Specify processes (RECOMMENDED)
 # MANDATORY for Go applications
