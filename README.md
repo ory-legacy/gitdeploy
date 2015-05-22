@@ -5,7 +5,7 @@
 [Gitdeploy.io](http://gitdeploy.io) is built on top of the next-gen PaaS [Flynn](http://flynn.io).
 
 Try it yourself: 
-[![Deploy gitdeploy-go-example via gitdeploy.io](https://img.shields.io/badge/gitdeploy.io-deploy%20gitdeploy--go--example/master-green.svg)](http://localhost:8124/deploy?repository=https%3A%2F%2Fgithub.com%2Fory-am%2Fgitdeploy-go-example.git)
+[![Deploy gitdeploy-go-example via gitdeploy.io](https://img.shields.io/badge/gitdeploy.io-deploy%20gitdeploy--go--example/master-green.svg)](https://www.gitdeploy.io/deploy?repository=https%3A%2F%2Fgithub.com%2Fory-am%2Fgitdeploy-go-example.git)
 
 ## Deploy your application
 
@@ -19,7 +19,7 @@ the `$PORT` and `$HOST` environment variables:
 ### [Golang](http://golang.org/)
 
 See a Go example in action: 
-[![Deploy gitdeploy-go-example via gitdeploy.io](https://img.shields.io/badge/gitdeploy.io-deploy%20gitdeploy--go--example/master-green.svg)](http://localhost:8124/deploy?repository=https%3A%2F%2Fgithub.com%2Fory-am%2Fgitdeploy-go-example.git)
+[![Deploy gitdeploy-go-example via gitdeploy.io](https://img.shields.io/badge/gitdeploy.io-deploy%20gitdeploy--go--example/master-green.svg)](https://www.gitdeploy.io/deploy?repository=https%3A%2F%2Fgithub.com%2Fory-am%2Fgitdeploy-go-example.git)
 
 Flynn uses Heroku-like buildpacks to deploy Go applications: [Deploy Go](https://flynn.io/docs/how-to-deploy-go)  
 To deploy your app via [Gitdeploy.io](http://gitdeploy.io), you'll need a `.gitdeploy.yml` file which combines
@@ -58,11 +58,15 @@ You need [Go](http://golang.org/) and [NodeJS](http://nodejs.org/) installed on 
 
 **IMPORTANT:** If you reboot the boot2docker-vm or the host you need to restart the container as well. You can get the container id by doing `docker ps -l` and start it by doing `docker start {id}` (replace {id} with id from `docker ps -l`).
 
-Almost done, now do in two separate terminals:
+Next thing you need is a flynn cluster. First, install the [Flynn cli](https://github.com/flynn/flynn/tree/master/cli), second run `flynn install` in your console and follow the instructions.
+
+Now you're almost done. Run in two separate terminals:
 
 ```
 $ go run main.go
 ```
+
+and
 
 ```
 $ cd app
