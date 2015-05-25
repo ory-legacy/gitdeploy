@@ -25,5 +25,5 @@ func (l *Listener) AttachAggregate(em *event.EventManager) {
 	em.AttachListener("jobs.deploy", l)
 	em.AttachListener("jobs.cluster", l)
 	em.AttachListener("app.deployed", l)
-    em.AttachListener("app.cleanup", l)
+	em.AttachListener("app.cleanup", l)
 }

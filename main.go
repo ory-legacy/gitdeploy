@@ -19,40 +19,40 @@ import (
 	"gopkg.in/mgo.v2"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"regexp"
-	"time"
 	"runtime"
-	"os"
-    "strings"
+	"strings"
+	"time"
 )
 
 const (
 	sessionCurrentDeployment = "cdid"
-	sessionName = "gdp"
+	sessionName              = "gdp"
 )
 
 var (
-// API Version
+	// API Version
 	ApiVersion = "1.0"
 
-// Generic configuration
+	// Generic configuration
 	host = env.Getenv("HOST", "")
 	port = env.Getenv("PORT", "7654")
 
-	envAppTtl = env.Getenv("APP_TTL", "30m")
-    envClusterConf = env.Getenv("FLYNN_CLUSTER_CONFIG", "")
+	envAppTtl      = env.Getenv("APP_TTL", "30m")
+	envClusterConf = env.Getenv("FLYNN_CLUSTER_CONFIG", "")
 
-// Configuration for CORS
+	// Configuration for CORS
 	corsAllowOrigin = env.Getenv("CORS_ALLOW_ORIGIN", "http://localhost:9000")
 
 	sessionStore = gorillasession.NewCookieStore([]byte(env.Getenv("SESSION_SECRET", "changme")))
 
-// MongoDB
+	// MongoDB
 	envMongoPath = env.Getenv("MONGODB", "mongodb://localhost:27017/gitdeploy")
 
-// Appliances
-    envAppliancesMongo = env.Getenv("APPLIANCE_MONGODB_30", "mongodb://localhost:27017/")
+	// Appliances
+	envAppliancesMongo = env.Getenv("APPLIANCE_MONGODB_30", "mongodb://localhost:27017/")
 )
 
 type deployRequest struct {
@@ -112,7 +112,7 @@ func publicHandler(dir string) func(http.ResponseWriter, *http.Request) {
 				http.ServeFile(w, r, path)
 				return
 			} else {
-                http.NotFound(w, r)
+				http.NotFound(w, r)
 				return
 			}
 		}
@@ -120,8 +120,8 @@ func publicHandler(dir string) func(http.ResponseWriter, *http.Request) {
 		if matched, err := regexp.MatchString(pattern, path); err != nil {
 			log.Printf("Could not exec regex: %s", err.Error())
 		} else if !matched {
-            http.ServeFile(w, r, dir + "/index.html")
-            return
+			http.ServeFile(w, r, dir+"/index.html")
+			return
 		} else {
 			http.NotFound(w, r)
 		}
@@ -222,14 +222,14 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 	if v, ok := session.Values[sessionCurrentDeployment].(string); ok && len(v) > 0 {
 		app, err := store.GetApp(v)
 		if err != nil {
-            cleanUpSession(w, r)
-            log.Printf("Could not fetch app from cookie: %s", err.Error())
-        } else if !sseBroker.IsChannelOpen(app.ID) {
-            cleanUpSession(w, r)
-            log.Printf("Channel %s does not exist any more", app.ID)
+			cleanUpSession(w, r)
+			log.Printf("Could not fetch app from cookie: %s", err.Error())
+		} else if !sseBroker.IsChannelOpen(app.ID) {
+			cleanUpSession(w, r)
+			log.Printf("Channel %s does not exist any more", app.ID)
 		} else {
 			responseSuccess(w, app)
-            return
+			return
 		}
 	}
 
@@ -306,10 +306,10 @@ func runJobs(w http.ResponseWriter, r *http.Request, em *event.EventManager, dr 
 		return
 	}
 
-    if err = job.Cleanup(em, app.ID, destination); err != nil {
-        log.Printf("Error in job.cleanup %s: %s", app.ID, err.Error())
-        return
-    }
+	if err = job.Cleanup(em, app.ID, destination); err != nil {
+		log.Printf("Error in job.cleanup %s: %s", app.ID, err.Error())
+		return
+	}
 
 	log.Println("Deployment successful.")
 	em.Trigger("app.deployed", gde.New(app.ID, app.URL))
@@ -357,32 +357,32 @@ func checkIfFlynnExists() {
 			} else if _, err := exec.LookPath("flynn"); err != nil {
 				log.Fatal("Could not install Flynn CLI.")
 			}
-            log.Println("Flynn installed successfully!")
-            log.Println("Adding flynn cluster...")
-            log.Println(envClusterConf)
-            args := append([]string{"cluster", "add"}, strings.Split(envClusterConf, " ")...)
-            log.Printf("%s", args)
-            if o, err := exec.Command("flynn", args...).CombinedOutput(); err != nil {
-                log.Fatalf("Could not add cluster (status: %s) (output: %s) (args: %s)", err.Error(), o, args)
-            } else {
-                log.Printf("Adding cluster successful: %s", o)
-            }
+			log.Println("Flynn installed successfully!")
+			log.Println("Adding flynn cluster...")
+			log.Println(envClusterConf)
+			args := append([]string{"cluster", "add"}, strings.Split(envClusterConf, " ")...)
+			log.Printf("%s", args)
+			if o, err := exec.Command("flynn", args...).CombinedOutput(); err != nil {
+				log.Fatalf("Could not add cluster (status: %s) (output: %s) (args: %s)", err.Error(), o, args)
+			} else {
+				log.Printf("Adding cluster successful: %s", o)
+			}
 		}
 	}()
 }
 
 func getIP(r *http.Request) string {
-    ip := removePort(r.RemoteAddr)
-    if len(r.Header.Get("X-FORWARDED-FOR")) > 0 {
-        ip = r.Header.Get("X-FORWARDED-FOR")
-    }
-    return ip
+	ip := removePort(r.RemoteAddr)
+	if len(r.Header.Get("X-FORWARDED-FOR")) > 0 {
+		ip = r.Header.Get("X-FORWARDED-FOR")
+	}
+	return ip
 }
 
 func removePort(ip string) string {
-    split := strings.Split(ip, ":")
-    if len(split) < 2 {
-        return ip
-    }
-    return strings.Join(split[:len(split)-1], ":")
+	split := strings.Split(ip, ":")
+	if len(split) < 2 {
+		return ip
+	}
+	return strings.Join(split[:len(split)-1], ":")
 }

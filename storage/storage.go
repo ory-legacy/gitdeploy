@@ -24,7 +24,7 @@ type App struct {
 	URL        string    `json:"url",bson:"url"`
 	Repository string    `json:"repository",bson:"repository"`
 	Killed     bool      `json:"killed",bson:"killed"`
-    IP         string    `json:"ip",bson:"ip"`
+	IP         string    `json:"ip",bson:"ip"`
 }
 
 // DeployEvent saves the deployment logs/events.

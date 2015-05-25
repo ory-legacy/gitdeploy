@@ -17,14 +17,14 @@ const (
 )
 
 type MongoStorage struct {
-	session *mgo.Session
+	session  *mgo.Session
 	database string
 }
 
 // NewUserStorage creates a new database session for storing users
 func New(session *mgo.Session, database string) *MongoStorage {
 	s := &MongoStorage{
-		session: session,
+		session:  session,
 		database: database,
 	}
 	s.ensureUnique(appCollection, []string{"id"})
@@ -39,7 +39,7 @@ func (s *MongoStorage) AddApp(app string, ttl time.Time, repository, ip string) 
 		CreatedAt:  time.Now(),
 		Killed:     false,
 		Repository: repository,
-        IP: ip,
+		IP:         ip,
 	}
 	err = s.getCollection(appCollection).Insert(a)
 	return a, err
@@ -116,7 +116,7 @@ func (s *MongoStorage) AttachAggregate(em *event.EventManager) {
 	em.AttachListener("app.created", s)
 	em.AttachListener("app.deployed", s)
 	em.AttachListener("jobs.cluster", s)
-    em.AttachListener("jobs.cleanup", s)
+	em.AttachListener("jobs.cleanup", s)
 }
 
 func (s *MongoStorage) getCollection(name string) *mgo.Collection {

@@ -93,3 +93,7 @@ $ go run main.go
 ```
 
 Go to [localhost:7654](http://localhost:7654)
+
+## To do
+
+* Run git init on startup
