@@ -48,9 +48,11 @@ var (
 
 	sessionStore = gorillasession.NewCookieStore([]byte(env.Getenv("SESSION_SECRET", "changme")))
 
-
 // MongoDB
 	envMongoPath = env.Getenv("MONGODB", "mongodb://localhost:27017/gitdeploy")
+
+// Appliances
+    envAppliancesMongo = env.Getenv("APPLIANCE_MONGODB_30", "mongodb://localhost:27017/")
 )
 
 type deployRequest struct {
