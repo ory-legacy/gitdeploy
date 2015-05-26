@@ -9,13 +9,13 @@ import (
 type Listener struct{}
 
 func (l *Listener) Trigger(event string, data interface{}) {
-	if e, ok := data.(gde.JobEvent); ok {
+	if e, ok := data.(gde.Event); ok {
 		// TODO Ugly...
 		e.SetEventName(event)
 		log.Printf("Log listener: Event %s on app %s said: %s", event, e.GetApp(), e.GetMessage())
 		return
 	}
-	log.Fatalf("Log listener: Type mismatch: %s is not job.JobEvent", data)
+	log.Fatalf("Log listener: Type mismatch: %s is not job.Event", data)
 }
 
 func (l *Listener) AttachAggregate(em *event.EventManager) {

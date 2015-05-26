@@ -100,7 +100,7 @@ func (s *MongoStorage) DeployEventIsRead(e *storage.DeployEvent) error {
 }
 
 func (s *MongoStorage) Trigger(name string, data interface{}) {
-	if e, ok := data.(gde.JobEvent); ok {
+	if e, ok := data.(gde.Event); ok {
 		// TODO Ugly...
 		e.SetEventName(name)
 		if _, err := s.AddDeployEvent(e.GetApp(), e.GetMessage()); err != nil {
