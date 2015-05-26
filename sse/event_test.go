@@ -1,9 +1,9 @@
 package sse
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestGetApp(t *testing.T) {

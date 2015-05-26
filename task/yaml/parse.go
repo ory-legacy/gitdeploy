@@ -1,16 +1,17 @@
 package yaml
+
 import (
-	"github.com/ory-am/gitdeploy/task"
-	"os"
-	"io/ioutil"
-	"github.com/ory-am/gitdeploy/Godeps/_workspace/src/github.com/go-errors/errors"
 	"fmt"
-	"gopkg.in/yaml.v2"
+	"errors"
+	"github.com/ory-am/gitdeploy/task"
 	"github.com/ory-am/gitdeploy/task/flynn"
 	"github.com/ory-am/gitdeploy/task/git"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
 )
 
-type Parse struct{
+type Parse struct {
 	*task.Helper
 	Flynn *flynn.Flynn
 	Git   *git.Git
@@ -56,7 +57,7 @@ func (d *Parse) Run() (task.WorkerLog, error) {
 	return w, nil
 }
 
-func (h *Parse) godir(w *task.WorkerLog, config *Config) (error) {
+func (h *Parse) godir(w *task.WorkerLog, config *Config) error {
 	if config.Godir != "" {
 		godirPath := h.WorkingDirectory + "/.godir"
 		if _, err := os.Stat(godirPath); err == nil {
@@ -80,7 +81,7 @@ func (h *Parse) godir(w *task.WorkerLog, config *Config) (error) {
 	return false, nil
 }
 
-func (h *Parse) buildpack(w *task.WorkerLog, config *Config) (error) {
+func (h *Parse) buildpack(w *task.WorkerLog, config *Config) error {
 	if len(config.Buildpack) > 0 {
 		w.Add(h.EventName, fmt.Sprintf("Found custom buildpack url: %s.", config.Buildpack))
 		h.Flynn.AddEnvVar("BUILDPACK_URL", config.Buildpack)
@@ -97,7 +98,7 @@ func (h *Parse) env(w *task.WorkerLog, config *Config) {
 	}
 }
 
-func (h *Parse) procs(w *task.WorkerLog, config *Config) (error) {
+func (h *Parse) procs(w *task.WorkerLog, config *Config) error {
 	if len(config.ProcConfig) > 0 {
 		procfilePath := h.WorkingDirectory + "/Procfile"
 		if _, err := os.Stat(procfilePath); err == nil {

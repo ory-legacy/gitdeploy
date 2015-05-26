@@ -35,7 +35,7 @@ func (f *Flynn) AddEnvVar(key, value string) {
 	f.envVars = append(f.envVars, key+"="+value)
 }
 
-func (f *Flynn) CommitEnvVars() (error) {
+func (f *Flynn) CommitEnvVars() error {
 	return exec.Command("flynn", "-a", f.App, "env", "set", f.envVars...).Run()
 }
 

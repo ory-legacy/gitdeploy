@@ -1,9 +1,9 @@
 package janitor
 
 import (
-	"github.com/ory-am/gitdeploy/task"
 	"fmt"
-	"github.com/ory-am/gitdeploy/Godeps/_workspace/src/github.com/go-errors/errors"
+	"errors"
+	"github.com/ory-am/gitdeploy/task"
 )
 
 type Janitor struct {

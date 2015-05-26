@@ -1,4 +1,5 @@
 package sse
+
 import "encoding/json"
 
 // An SSE event
