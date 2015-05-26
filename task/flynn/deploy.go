@@ -8,13 +8,13 @@ import (
 type KeyAdd struct{ *task.Helper }
 type CreateApp struct{ *task.Helper }
 type ReleaseApp struct{ *task.Helper }
-type ScaleApp struct{
+type ScaleApp struct {
 	ProcName string
 	*task.Helper
 }
 type ReleaseContainer struct {
 	Manifest string
-	URL string
+	URL      string
 	*task.Helper
 }
 
@@ -25,7 +25,7 @@ func (d *ScaleApp) Run() (task.WorkerLog, error) {
 		return err
 	}
 	w.Add(d.EventName, "Releasing container...")
-	if err := d.Exec(w, "flynn", "-a", d.App, "scale", d.ProcName + "=1"); err != nil {
+	if err := d.Exec(w, "flynn", "-a", d.App, "scale", d.ProcName+"=1"); err != nil {
 		return err
 	}
 	return nil
@@ -70,4 +70,16 @@ func (d *ReleaseApp) Run() (task.WorkerLog, error) {
 		return err
 	}
 	return nil
+}
+
+func CreateReleaseContainer(manifest, url, id, eventName, workingDirectory string) *ReleaseContainer {
+	return &ReleaseContainer{
+		Manifest: manifest,
+		URL:      "tbd",
+		&task.Helper{
+			App:              id,
+			EventName:        eventName,
+			WorkingDirectory: workingDirectory,
+		},
+	}
 }
