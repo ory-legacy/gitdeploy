@@ -2,8 +2,8 @@ package task
 
 import (
 	"fmt"
+	"github.com/ory-am/gitdeploy/sse"
 	"github.com/ory-am/event"
-	gde "github.com/ory-am/gitdeploy/event"
 )
 
 type Command interface {
@@ -20,6 +20,7 @@ type WorkerLog []*workerLogEntry
 type workerLogEntry struct {
 	event   string
 	message string
+	err error
 }
 
 func (w *WorkerLog) Add(event, message string) {
@@ -30,8 +31,13 @@ func (w *WorkerLog) Add(event, message string) {
 	w = &n
 }
 
-func (w *WorkerLog) AddError(event, err error) {
-	w.Add(event, fmt.Sprintf("An error occured: %s", err.Error()))
+func (w *WorkerLog) AddError(event string, err error) {
+	n := append(*w, &workerLogEntry{
+		event:   event,
+		message: fmt.Sprintf("An error occured: %s", err.Error()),
+		err: err,
+	})
+	w = &n
 }
 
 func (l *EventManagerWorker) Work(m []Command) error {
@@ -41,7 +47,7 @@ func (l *EventManagerWorker) Work(m []Command) error {
 			return err
 		}
 		for _, v := range events {
-			l.EventManager.TriggerAndWait(v.event, gde.New(l.Channel, v.message))
+			l.EventManager.TriggerAndWait(v.event, sse.NewEvent(l.Channel, v.message))
 		}
 	}
 	return nil

@@ -25,14 +25,14 @@ func (h *Helper) Exec(w *WorkerLog, cmd string, args ...string) error {
 	e.Dir = h.WorkingDirectory
 
 	if stdout, err := e.StdoutPipe(); err != nil {
-		w.AddError(h.EventName, err.Error())
+		w.AddError(h.EventName, err)
 		return err
 	} else {
 		go h.ScanPipe(stdout, w)
 	}
 
 	if stderr, err := e.StderrPipe(); err != nil {
-		w.AddError(h.EventName, err.Error())
+		w.AddError(h.EventName, err)
 		return err
 	} else {
 		go h.ScanPipe(stderr, w)
@@ -40,7 +40,7 @@ func (h *Helper) Exec(w *WorkerLog, cmd string, args ...string) error {
 
 	err := e.Run()
 	if err != nil {
-		w.AddError(h.EventName, err.Error())
+		w.AddError(h.EventName, err)
 	}
 	return err
 }
