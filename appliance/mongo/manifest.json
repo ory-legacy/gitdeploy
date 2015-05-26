@@ -1,0 +1,18 @@
+{
+  "processes": {
+    "server": {
+      "cmd": ["mongod"],
+      "ports": [
+        {
+          "port": 27017,
+          "proto": "tcp",
+          "service": {
+            "name": "mongo",
+            "create": true,
+            "check": {"type": "tcp"}
+          }
+        }
+      ]
+    }
+  }
+}
