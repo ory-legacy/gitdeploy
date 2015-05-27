@@ -7,64 +7,60 @@ import (
 	"time"
 )
 
-type Command interface {
-	Run(w WorkerLog, e WorkerError)
-}
+// Task is a function which runs a task, for example "flynn create app" or "git clone"
+type Task func (w WorkerLog) (error)
 
-type EventManagerWorker struct {
-	EventManager *event.EventManager
-	Channel      string
-}
+// WorkerLog
+type WorkerLog chan *workerEvent
 
-type WorkerLog chan *workerLogEntry
-type WorkerError chan error
-
-type workerLogEntry struct {
-	event   string
+type workerEvent struct {
 	message string
 	err     error
-	timestamp time.Time
+	// offset should be int32 or float64
+	offset time.Time
 }
 
-func (w *WorkerLog) Add(event, message string) {
-	w <- &workerLogEntry{
-		event:   event,
+// Add adds an event to the channel
+func (w WorkerLog) Add(message string) {
+	w <- &workerEvent{
 		message: message,
-		timestamp: time.Now(),
+		err:     nil,
+		offset: time.Now(),
 	}
 }
 
-func (w *WorkerLog) AddError(event string, err error) {
-	w <- &workerLogEntry{
-		event:   event,
+// Add adds an error event to the channel
+func (w WorkerLog) AddError(err error) {
+	w <- &workerEvent{
 		message: fmt.Sprintf("An error occured: %s", err.Error()),
 		err:     err,
-		timestamp: time.Now(),
+		offset: time.Now(),
 	}
 }
 
-func (l *EventManagerWorker) Work(m []Command) (err error) {
-	w := make(WorkerLog, 10)
-	e := make(WorkerError)
-
+// RunJob ...
+func RunJob(event, channel string, em *event.EventManager, taskList []Task) (err error) {
 	// Run all jobs
-	for _, c := range m {
+	for _, task := range taskList {
+		workerChan := make(WorkerLog)
+		errChan := make(chan error)
+
 		// Run next in line
 		go func() {
-			defer close(w)
-			defer close(e)
-			c.Run(w, e)
+			defer close(workerChan)
+			defer close(errChan)
+			errChan <- task(workerChan)
 		}()
 
 		// Forward output to the event manager
 		go func() {
 			for {
 				select {
-				case v, open := <-w:
+				case v, open := <-workerChan:
 					if !open {
 						return
 					}
-					l.EventManager.TriggerAndWait(v.event, sse.NewEvent(l.Channel, v.message))
+					em.TriggerAndWait(event, sse.NewEvent(channel, v.message))
 				}
 			}
 		}()
@@ -72,7 +68,7 @@ func (l *EventManagerWorker) Work(m []Command) (err error) {
 		// Catch errors if any occur
 		for {
 			select {
-			case err := <-e:
+			case err := <-errChan:
 				return err
 			}
 		}

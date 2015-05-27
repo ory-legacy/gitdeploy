@@ -6,41 +6,38 @@ import (
 	"os/exec"
 )
 
-type Helper struct {
-	App              string
-	WorkingDirectory string
-	EventName        string
-}
-
-// ScanPipe scans the pipe and puts results into w
-func (h *Helper) ScanPipe(p io.ReadCloser, w *WorkerLog) {
+// scanPipe scans an .ReaderCloser and puts results into a WorkerLog
+func scanPipe(p io.ReadCloser, w WorkerLog) {
 	s := bufio.NewScanner(p)
 	for s.Scan() {
-		w.Add(h.EventName, s.Text())
+		w.Add(s.Text())
 	}
 }
 
-func (h *Helper) Exec(w *WorkerLog, cmd string, args ...string) error {
+// Exec executes a command and puts the commands output
+func Exec(w WorkerLog, wd string, cmd string, args ...string) error {
 	e := exec.Command(cmd, args...)
-	e.Dir = h.WorkingDirectory
+	if len(wd) != 0 {
+		e.Dir = wd
+	}
 
 	if stdout, err := e.StdoutPipe(); err != nil {
-		w.AddError(h.EventName, err)
+		w.AddError(err)
 		return err
 	} else {
-		go h.ScanPipe(stdout, w)
+		go scanPipe(stdout, w)
 	}
 
 	if stderr, err := e.StderrPipe(); err != nil {
-		w.AddError(h.EventName, err)
+		w.AddError(err)
 		return err
 	} else {
-		go h.ScanPipe(stderr, w)
+		go scanPipe(stderr, w)
 	}
 
-	err := e.Run()
-	if err != nil {
-		w.AddError(h.EventName, err)
+	if err := e.Run(); err != nil {
+		w.AddError(err)
+		return err
 	}
-	return err
+	return nil
 }
