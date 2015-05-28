@@ -1,4 +1,6 @@
-**.gitdeploy.yml** configuration options (proposal)
+# .gitdeploy.yml *draft*
+
+Use the *.gitdeploy.yml* file to configure the app environment.
 
 ```yml
 # This file defines the GitDeploy configuration settings. 
