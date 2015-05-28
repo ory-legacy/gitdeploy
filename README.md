@@ -1,11 +1,8 @@
 # ory-am/gitdeploy
 
-[Gitdeploy.io](http://gitdeploy.io), the first 1-click deployment for your apps out there.
+[Gitdeploy.io](http://gitdeploy.io), the first 1-click deployment for your apps out there. We're built on top of the next-gen PaaS [Flynn](http://flynn.io).
 
-[Gitdeploy.io](http://gitdeploy.io) is built on top of the next-gen PaaS [Flynn](http://flynn.io).
-
-Try it yourself: 
-[![Deploy gitdeploy-go-example via gitdeploy.io](https://img.shields.io/badge/gitdeploy.io-deploy%20gitdeploy--go--example/master-green.svg)](https://www.gitdeploy.io/deploy?repository=https%3A%2F%2Fgithub.com%2Fory-am%2Fgitdeploy-go-example.git)
+Hooked? Read the [project description](https://github.com/ory-am/gitdeploy/wiki)!
 
 ## Deploy your application
 
@@ -16,7 +13,7 @@ the `$PORT` and `$HOST` environment variables:
 [Example 1](https://github.com/ory-am/gitdeploy-go-example/blob/master/main.go#L22-L23)
 [Example 2](https://github.com/ory-am/gitdeploy-go-example/blob/master/main.go#L124-L125).  
 
-### [Golang](http://golang.org/)
+### [Golang](http://golang.org/) example
 
 See a Go example in action: 
 [![Deploy gitdeploy-go-example via gitdeploy.io](https://img.shields.io/badge/gitdeploy.io-deploy%20gitdeploy--go--example/master-green.svg)](https://www.gitdeploy.io/deploy?repository=https%3A%2F%2Fgithub.com%2Fory-am%2Fgitdeploy-go-example.git)
