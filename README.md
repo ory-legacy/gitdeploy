@@ -51,7 +51,7 @@ You need [Go](http://golang.org/) and [NodeJS](http://nodejs.org/) installed on 
 > docker run -d -p 27017:27017 library/mongo
 ```
 
-**On Linux*** download and install [Docker](https://www.docker.com/) and run `$ docker run -d -p 27017:27017 library/mongo`
+**On Linux** download and install [Docker](https://www.docker.com/) and run `$ docker run -d -p 27017:27017 library/mongo`
 
 **IMPORTANT:** If you reboot the boot2docker-vm or the host you need to restart the container as well. You can get the container id by doing `docker ps -l` and start it by doing `docker start {id}` (replace {id} with id from `docker ps -l`).
 
