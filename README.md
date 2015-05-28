@@ -1,8 +1,9 @@
 # ory-am/gitdeploy
 
-[Gitdeploy.io](http://gitdeploy.io), the first 1-click deployment for your apps out there. We're built on top of the next-gen PaaS [Flynn](http://flynn.io).
-
+[Gitdeploy.io](http://gitdeploy.io), the first time bounded deployment for your apps out there.  
 Hooked? Read the [project description](https://github.com/ory-am/gitdeploy/wiki)!
+
+GitDeploy is built on top of the next-gen PaaS [Flynn](http://flynn.io).
 
 ## Deploy your application
 
