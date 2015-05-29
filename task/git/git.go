@@ -2,42 +2,22 @@ package git
 
 import (
 	"fmt"
-	"github.com/ory-am/gitdeploy/task"
 	"os"
 	"os/exec"
 	"runtime"
 )
 
-type Git struct{ *task.Helper }
-
-func (h *Git) CreateDirectory() (destination string) {
-	destination = fmt.Sprintf("%s/%s", os.TempDir(), h.App)
+func CreateDirectory(app string) (destination string) {
+	destination = fmt.Sprintf("%s/%s", os.TempDir(), app)
 	if runtime.GOOS == "windows" {
-		destination = fmt.Sprintf("%s\\%s", os.TempDir(), h.App)
+		destination = fmt.Sprintf("%s\\%s", os.TempDir(), app)
 	}
-	return destination
+	return
 }
 
-func (f *Git) Init() error {
-	if err := exec.Command("git", "config", "user.name", "gitdeploy").Run(); err != nil {
+func Init() error {
+	if err := exec.Command("git", "config", "user.name", "gd").Run(); err != nil {
 		return err
 	}
-	if err := exec.Command("git", "config", "user.name", "gitdeploy").Run(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (f *Git) Commit() error {
-	if err := exec.Command("git", "commit", "-a", "-m", "gitdeploy").Run(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (f *Git) AddAll() error {
-	if err := exec.Command("git", "add", "--all").Run(); err != nil {
-		return err
-	}
-	return nil
+	return exec.Command("git", "config", "user.email", "gd@gitdeploy").Run()
 }

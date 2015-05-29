@@ -3,7 +3,7 @@ package mongo
 import (
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/ory-am/event"
-	gde "github.com/ory-am/gitdeploy/event"
+	"github.com/ory-am/gitdeploy/sse"
 	"github.com/ory-am/gitdeploy/storage"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	appCollection          = "app"
+	appCollection = "app"
 	appDeployLogCollection = "appEvents"
 )
 
@@ -100,11 +100,11 @@ func (s *MongoStorage) DeployEventIsRead(e *storage.DeployEvent) error {
 }
 
 func (s *MongoStorage) Trigger(name string, data interface{}) {
-	if e, ok := data.(gde.Event); ok {
+	if e, ok := data.(*sse.Event); ok {
 		// TODO Ugly...
 		e.SetEventName(name)
-		if _, err := s.AddDeployEvent(e.GetApp(), e.GetMessage()); err != nil {
-			log.Fatal(err.Error())
+		if _, err := s.AddDeployEvent(e.GetApp(), e.SSEify()); err != nil {
+			log.Printf(err.Error())
 		}
 	}
 }

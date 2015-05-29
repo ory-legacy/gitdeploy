@@ -8,7 +8,7 @@ import (
 )
 
 // Task is a function which runs a task, for example "flynn create app" or "git clone"
-type Task func (w WorkerLog) (error)
+type Task func(w WorkerLog) (error)
 
 // WorkerLog
 type WorkerLog chan *workerEvent
@@ -17,7 +17,7 @@ type workerEvent struct {
 	message string
 	err     error
 	// offset should be int32 or float64
-	offset time.Time
+	offset  time.Time
 }
 
 // Add adds an event to the channel
@@ -60,7 +60,7 @@ func RunJob(event, channel string, em *event.EventManager, taskList []Task) (err
 					if !open {
 						return
 					}
-					em.TriggerAndWait(event, sse.NewEvent(channel, v.message))
+					em.TriggerAndWait(event, sse.NewEvent(channel, v.message, event))
 				}
 			}
 		}()

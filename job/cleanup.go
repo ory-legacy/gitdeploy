@@ -2,8 +2,6 @@ package job
 
 import (
 	"fmt"
-	"github.com/ory-am/event"
-	gde "github.com/ory-am/gitdeploy/event"
 	"github.com/ory-am/gitdeploy/storage"
 	"log"
 	"os/exec"

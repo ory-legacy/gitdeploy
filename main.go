@@ -9,7 +9,6 @@ import (
 	"github.com/ory-am/common/env"
 	"github.com/ory-am/common/mgopath"
 	"github.com/ory-am/event"
-	gde "github.com/ory-am/gitdeploy/event"
 	"github.com/ory-am/gitdeploy/job"
 	gdLog "github.com/ory-am/gitdeploy/log"
 	"github.com/ory-am/gitdeploy/sse"
@@ -25,6 +24,9 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"github.com/ory-am/gitdeploy/ip"
+	"github.com/ory-am/gitdeploy/public"
+	"github.com/ory-am/gitdeploy/eco"
 )
 
 const (
@@ -50,9 +52,6 @@ var (
 
 	// MongoDB
 	envMongoPath = env.Getenv("MONGODB", "mongodb://localhost:27017/gitdeploy")
-
-	// Appliances
-	envAppliancesMongo = env.Getenv("APPLIANCE_MONGODB_30", "mongodb://localhost:27017/")
 )
 
 type deployRequest struct {
@@ -64,7 +63,12 @@ type appResponse struct {
 }
 
 func main() {
-	checkDependencies()
+	eco.IsGitAvailable()
+	eco.IsFlynnAvailable()
+	eco.InitGit()
+
+	// eco.InitFlynn()
+
 	eventManager := event.New()
 
 	// mgo
@@ -89,7 +93,7 @@ func main() {
 	r.HandleFunc("/deployments", setCORSHeaders).Methods("OPTIONS")
 	r.HandleFunc("/deployments/{app:.+}/events", eventWrapperAction(sseBroker)).Methods("GET")
 	r.HandleFunc("/apps/{app:.+}", getAppHandler(storage)).Methods("GET")
-	r.PathPrefix("/").HandlerFunc(publicHandler("./app/dist"))
+	r.PathPrefix("/").HandlerFunc(public.HTML5ModeHandler("./app/dist", "index.html"))
 	http.Handle("/", r)
 
 	go job.KillAppsOnHitList(storage)
@@ -97,35 +101,6 @@ func main() {
 	listen := fmt.Sprintf("%s:%s", host, port)
 	log.Printf("Listening on %s", listen)
 	log.Fatal(http.ListenAndServe(listen, nil))
-}
-
-func publicHandler(dir string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		path := dir + r.URL.Path
-		if r.URL.Path == "/" {
-			path = dir + "/index.html"
-		}
-		pattern := `!\.html|\.js|\.svg|\.css|\.png|\.jpg$`
-
-		if f, err := os.Stat(path); err == nil {
-			if !f.IsDir() {
-				http.ServeFile(w, r, path)
-				return
-			} else {
-				http.NotFound(w, r)
-				return
-			}
-		}
-
-		if matched, err := regexp.MatchString(pattern, path); err != nil {
-			log.Printf("Could not exec regex: %s", err.Error())
-		} else if !matched {
-			http.ServeFile(w, r, dir+"/index.html")
-			return
-		} else {
-			http.NotFound(w, r)
-		}
-	}
 }
 
 func configHandler(w http.ResponseWriter, r *http.Request) {
@@ -251,7 +226,7 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 		responseError(w, http.StatusInternalServerError, err.Error())
 		return
 	} else {
-		appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository, getIP(r))
+		appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository, ip.GetRemoteAddr(r))
 		if err != nil {
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -332,57 +307,4 @@ func responseError(w http.ResponseWriter, code int, message string) {
 func responseSuccess(w http.ResponseWriter, data interface{}) {
 	response := responder.New(ApiVersion)
 	response.Write(w, response.Success(data))
-}
-
-func checkDependencies() {
-	go func() {
-		_, err := exec.LookPath("git")
-		if err != nil {
-			log.Fatal("Git CLI is required but not installed or not in path.")
-		}
-	}()
-	go checkIfFlynnExists()
-}
-
-func checkIfFlynnExists() {
-	func() {
-		_, err := exec.LookPath("flynn")
-		if err != nil {
-			if runtime.GOOS == "windows" {
-				log.Fatal("Flynn CLI is required but not installed or not in path.")
-			}
-			log.Println("Could not find Flynn CLI, trying to install...")
-			if o, err := exec.Command("sh", "bin/flynn-install.sh").CombinedOutput(); err != nil {
-				log.Printf("Could not install Flynn CLI (%s): %s", err.Error(), o)
-			} else if _, err := exec.LookPath("flynn"); err != nil {
-				log.Fatal("Could not install Flynn CLI.")
-			}
-			log.Println("Flynn installed successfully!")
-			log.Println("Adding flynn cluster...")
-			log.Println(envClusterConf)
-			args := append([]string{"cluster", "add"}, strings.Split(envClusterConf, " ")...)
-			log.Printf("%s", args)
-			if o, err := exec.Command("flynn", args...).CombinedOutput(); err != nil {
-				log.Fatalf("Could not add cluster (status: %s) (output: %s) (args: %s)", err.Error(), o, args)
-			} else {
-				log.Printf("Adding cluster successful: %s", o)
-			}
-		}
-	}()
-}
-
-func getIP(r *http.Request) string {
-	ip := removePort(r.RemoteAddr)
-	if len(r.Header.Get("X-FORWARDED-FOR")) > 0 {
-		ip = r.Header.Get("X-FORWARDED-FOR")
-	}
-	return ip
-}
-
-func removePort(ip string) string {
-	split := strings.Split(ip, ":")
-	if len(split) < 2 {
-		return ip
-	}
-	return strings.Join(split[:len(split)-1], ":")
 }

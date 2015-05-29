@@ -6,15 +6,12 @@ import (
 	"github.com/ory-am/gitdeploy/task"
 )
 
-type Janitor struct {
-	*task.Helper
-}
-
-func (j *Janitor) Cleanup() (task.WorkerLog, error) {
-	w := new(task.WorkerLog)
-	w.Add(j.EventName, "Cleaning up...")
-	if err := j.Exec(w, "../", "rm", "-rf", j.WorkingDirectory); err != nil {
-		return w, errors.New(fmt.Sprintf("Could not remove temp file: %s", err.Error()))
+func Cleanup(w task.WorkerLog, dir string) func(task.WorkerLog) error {
+	return func(w task.WorkerLog) error {
+		w.Add("Cleaning up...")
+		if err := task.Exec(w, "", "rm", "-rf", dir); err != nil {
+			return w, errors.New(fmt.Sprintf("Could not remove temp file: %s", err.Error()))
+		}
+		return w, nil
 	}
-	return w, nil
 }

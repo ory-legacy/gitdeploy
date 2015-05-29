@@ -97,3 +97,5 @@ Go to [localhost:7654](http://localhost:7654)
 ## To do
 
 * Run git init on startup
+* EventManager.trigger() needs err return value
+* attach and kill containers

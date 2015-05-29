@@ -1,30 +1,32 @@
 package sse
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"log"
+	"fmt"
+)
 
 // An SSE event
 type Event struct {
-	Message   string `json:"data"`
+	Data      string `json:"data"`
 	App       string `json:"app"`
 	EventName string `json:"eventName"`
 }
 
-func NewEvent(app, message string) *Event {
+func NewEvent(app, data, eventName string) *Event {
 	j := new(Event)
-	j.Message = message
+	j.Data = data
 	j.App = app
+	j.EventName = eventName
 	return j
 }
 
-func (j *Event) SSEify() string {
-	r, _ := json.MarshalIndent(j, "data: ", "\t")
+func (j *Event) SSEify() (string) {
+	r, err := json.MarshalIndent(j, "data: ", "\t")
+	if err != nil {
+		msg := fmt.Sprintf("Could not marshall %s: %s", j, err.Error())
+		log.Println(msg)
+		return "data: " + msg
+	}
 	return string(r)
-}
-
-func (j *Event) GetApp() string {
-	return j.App
-}
-
-func (j *Event) SetEventName(eventName string) {
-	j.EventName = eventName
 }

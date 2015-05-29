@@ -25,11 +25,11 @@ type channel struct {
 	// over which we can push Messages to attached Clients.  (The values
 	// are just booleans and are meaningless.)
 	//
-	clients map[chan *storage.DeployEvent]bool
+	clients        map[chan *storage.DeployEvent]bool
 
 	// Channel into which new Clients can be pushed
 	//
-	newClients chan chan *storage.DeployEvent
+	newClients     chan chan *storage.DeployEvent
 
 	// Channel into which disconnected Clients should be pushed
 	//
@@ -88,14 +88,14 @@ func (b *Broker) Start(channel string) error {
 
 			select {
 			case s := <-c.newClients:
-				// There is a new client attached and we
-				// want to start sending them Messages.
+			// There is a new client attached and we
+			// want to start sending them Messages.
 				c.clients[s] = true
 				log.Println("Added new client.")
 
 			case s := <-c.defunctClients:
-				// A client has dettached and we want to
-				// stop sending them Messages.
+			// A client has dettached and we want to
+			// stop sending them Messages.
 				delete(c.clients, s)
 				log.Println("Removed client.")
 
@@ -177,7 +177,7 @@ func (b *Broker) EventHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-w.(http.CloseNotifier).CloseNotify():
-			// Done
+		// Done
 			log.Println("Finished HTTP request at ", r.URL.Path)
 			return
 		case e := <-messageChan:
