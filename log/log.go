@@ -17,11 +17,16 @@ func (l *Listener) Trigger(event string, data interface{}) {
 }
 
 func (l *Listener) AttachAggregate(em *event.EventManager) {
-	em.AttachListener("app.created", l)
-	em.AttachListener("jobs.clone", l)
-	em.AttachListener("jobs.parse", l)
-	em.AttachListener("jobs.deploy", l)
-	em.AttachListener("jobs.cluster", l)
-	em.AttachListener("app.deployed", l)
+	em.AttachListener("git.clone", l)
+	em.AttachListener("config.parse", l)
+	em.AttachListener("config.procs", l)
+	em.AttachListener("config.buildpack", l)
+	em.AttachListener("config.env", l)
+	em.AttachListener("config.appliances", l)
+	em.AttachListener("env.commit", l)
+	em.AttachListener("git.add", l)
+	em.AttachListener("git.commit", l)
+	em.AttachListener("app.release", l)
 	em.AttachListener("app.cleanup", l)
+	em.AttachListener("app.deployed", l)
 }

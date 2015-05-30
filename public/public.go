@@ -1,10 +1,10 @@
 package public
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"regexp"
-	"log"
 )
 
 func HTML5ModeHandler(dir, index string) func(http.ResponseWriter, *http.Request) {

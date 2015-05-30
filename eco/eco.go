@@ -1,12 +1,13 @@
 package eco
+
 import (
-	"os/exec"
+	"github.com/ory-am/gitdeploy/task"
+	"github.com/ory-am/gitdeploy/task/flynn"
+	"github.com/ory-am/gitdeploy/task/git"
 	"log"
+	"os/exec"
 	"runtime"
 	"strings"
-	"github.com/ory-am/gitdeploy/task/git"
-	"github.com/ory-am/gitdeploy/task/flynn"
-	"github.com/ory-am/gitdeploy/task"
 )
 
 func IsGitAvailable() {
@@ -22,14 +23,12 @@ func InitGit() {
 }
 
 func InitFlynn(clusterConf string) {
-	w := new(task.WorkerLog)
+	w := make(task.WorkerLog)
 	if err := flynn.AddKey(w); err != nil {
 		log.Fatalf("Could not init flynn: $s", err.Error())
 	}
 	log.Println("Adding flynn cluster...")
-	log.Println(clusterConf)
 	args := append([]string{"cluster", "add"}, strings.Split(clusterConf, " ")...)
-	log.Printf("%s", args)
 	if o, err := exec.Command("flynn", args...).CombinedOutput(); err != nil {
 		log.Fatalf("Could not add cluster (status: %s) (output: %s) (args: %s)", err.Error(), o, args)
 	} else {

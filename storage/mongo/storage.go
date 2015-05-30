@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	appCollection = "app"
+	appCollection          = "app"
 	appDeployLogCollection = "appEvents"
+	applianceCollection    = "appAppliances"
 )
 
 type MongoStorage struct {
@@ -30,6 +31,16 @@ func New(session *mgo.Session, database string) *MongoStorage {
 	s.ensureUnique(appCollection, []string{"id"})
 	s.ensureUnique(appDeployLogCollection, []string{"id"})
 	return s
+}
+
+func (s *MongoStorage) AddAppliance(app, appliance, name string) (*storage.Appliance, error) {
+	a := &storage.Appliance{
+		ID:        appliance,
+		CreatedAt: time.Now(),
+		Name:      name,
+		Killed:    false,
+	}
+	return a, s.getCollection(appCollection).Update(bson.M{"id": app}, bson.M{"$push": bson.M{"appliances": a}})
 }
 
 func (s *MongoStorage) AddApp(app string, ttl time.Time, repository, ip string) (a *storage.App, err error) {
@@ -101,22 +112,25 @@ func (s *MongoStorage) DeployEventIsRead(e *storage.DeployEvent) error {
 
 func (s *MongoStorage) Trigger(name string, data interface{}) {
 	if e, ok := data.(*sse.Event); ok {
-		// TODO Ugly...
-		e.SetEventName(name)
-		if _, err := s.AddDeployEvent(e.GetApp(), e.SSEify()); err != nil {
+		if _, err := s.AddDeployEvent(e.App, e.SSEify()); err != nil {
 			log.Printf(err.Error())
 		}
 	}
 }
 
-func (s *MongoStorage) AttachAggregate(em *event.EventManager) {
-	em.AttachListener("jobs.clone", s)
-	em.AttachListener("jobs.deploy", s)
-	em.AttachListener("jobs.parse", s)
-	em.AttachListener("app.created", s)
-	em.AttachListener("app.deployed", s)
-	em.AttachListener("jobs.cluster", s)
-	em.AttachListener("jobs.cleanup", s)
+func (l *MongoStorage) AttachAggregate(em *event.EventManager) {
+	em.AttachListener("git.clone", l)
+	em.AttachListener("config.parse", l)
+	em.AttachListener("config.procs", l)
+	em.AttachListener("config.buildpack", l)
+	em.AttachListener("config.env", l)
+	em.AttachListener("config.appliances", l)
+	em.AttachListener("env.commit", l)
+	em.AttachListener("git.add", l)
+	em.AttachListener("git.commit", l)
+	em.AttachListener("app.release", l)
+	em.AttachListener("app.cleanup", l)
+	em.AttachListener("app.deployed", l)
 }
 
 func (s *MongoStorage) getCollection(name string) *mgo.Collection {

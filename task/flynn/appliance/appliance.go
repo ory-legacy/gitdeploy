@@ -9,33 +9,24 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
-	"code.google.com/p/go-uuid/uuid"
 )
 
 const processName = "process"
 
 // Create deploys a docker image.
 // Workflow taken from https://gist.github.com/lmars/8be1952a8d03f8a31b17
-func Create(w task.WorkerLog, id, manifestPath, url string, port int, config map[string]string) (env map[string]string, err error) {
-	if err = flynn.CreateApp(w, id, "")(); err != nil {
+func Create(w task.WorkerLog, id, manifestPath, url string, port int) (err error) {
+	if err = flynn.CreateApp(id, "")(w); err != nil {
 		return
 	}
 
 	// r := flynn.CreateReleaseContainer(manifest, "url://tbd", id, eventName, wd)
-	if err = flynn.ReleaseContainer(w, id, manifestPath, url)(); err != nil {
+	if err = flynn.ReleaseContainer(id, manifestPath, url)(w); err != nil {
 		return
 	}
 
-	if err = flynn.ScaleApp(w, id, processName)(); err != nil {
+	if err = flynn.ScaleApp(id, processName)(w); err != nil {
 		return
-	}
-
-	db := uuid.NewRandom().String()
-	env = map[string]string{
-		config["host"]: id + ".discoverd",
-		config["port"]: fmt.Sprintf("%d", port),
-		config["db"]:   db,
-		config["url"]:  "mongodb://" + id + ":" + fmt.Sprintf("%d", port) + "/" + db,
 	}
 	return
 }
@@ -53,7 +44,7 @@ func CreateManifest(id string, port int, cmd []string) (string, error) {
 						Service: &Service{
 							Name:   id,
 							Create: true,
-							Check: HealthCheck{
+							Check: &HealthCheck{
 								Type: "tcp",
 							},
 						},

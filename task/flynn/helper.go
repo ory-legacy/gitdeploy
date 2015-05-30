@@ -20,15 +20,15 @@ func (f *EnvHelper) AddEnvVar(key, value string) {
 }
 
 func (f *EnvHelper) CommitEnvVars(app string) error {
-	return exec.Command("flynn", "-a", app, "env", "set", f.envVars...).Run()
+	return exec.Command("flynn", append([]string{"-a", app, "env", "set"}, f.envVars...)...).Run()
 }
 
-func (f *EnvHelper) GetLogs(app string) (string, error) {
+func GetLogs(app string) (string, error) {
 	o, err := exec.Command("flynn", "-a", app, "log").CombinedOutput()
 	return string(o), err
 }
 
-func (f *EnvHelper) GetProcs(app string) (string, error) {
+func GetProcs(app string) (string, error) {
 	o, err := exec.Command("flynn", "-a", app, "ps").CombinedOutput()
 	return string(o), err
 }

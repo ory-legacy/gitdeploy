@@ -1,32 +1,21 @@
 package main
 
 import (
-	"code.google.com/p/go-uuid/uuid"
-	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
 	gorillasession "github.com/gorilla/sessions"
 	"github.com/ory-am/common/env"
 	"github.com/ory-am/common/mgopath"
 	"github.com/ory-am/event"
+	"github.com/ory-am/gitdeploy/eco"
 	"github.com/ory-am/gitdeploy/job"
 	gdLog "github.com/ory-am/gitdeploy/log"
+	"github.com/ory-am/gitdeploy/public"
 	"github.com/ory-am/gitdeploy/sse"
-	"github.com/ory-am/gitdeploy/storage"
 	"github.com/ory-am/gitdeploy/storage/mongo"
-	"github.com/ory-am/google-json-style-response/responder"
-	"gopkg.in/mgo.v2"
 	"log"
 	"net/http"
-	"os"
-	"os/exec"
-	"regexp"
-	"runtime"
-	"strings"
-	"time"
-	"github.com/ory-am/gitdeploy/ip"
-	"github.com/ory-am/gitdeploy/public"
-	"github.com/ory-am/gitdeploy/eco"
 )
 
 const (
@@ -65,9 +54,11 @@ type appResponse struct {
 func main() {
 	eco.IsGitAvailable()
 	eco.IsFlynnAvailable()
-	eco.InitGit()
 
-	// eco.InitFlynn()
+	if b := flag.Bool("init", false, "Initialize flynn and git"); !*b {
+		eco.InitGit()
+		eco.InitFlynn(envClusterConf)
+	}
 
 	eventManager := event.New()
 
@@ -101,210 +92,4 @@ func main() {
 	listen := fmt.Sprintf("%s:%s", host, port)
 	log.Printf("Listening on %s", listen)
 	log.Fatal(http.ListenAndServe(listen, nil))
-}
-
-func configHandler(w http.ResponseWriter, r *http.Request) {
-	setCORSHeaders(w, r)
-	responseSuccess(w, struct {
-		Now time.Time `json:"now"`
-	}{
-		time.Now(),
-	})
-}
-
-func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if cleanUpSession(w, r) != nil {
-			return
-		}
-		setCORSHeaders(w, r)
-		vars := mux.Vars(r)
-		id := vars["app"]
-		app, err := store.GetApp(id)
-		if err == mgo.ErrNotFound {
-			responseError(w, http.StatusNotFound, fmt.Sprintf("App %s does not exist.", id))
-			return
-		} else if app.Killed {
-			responseError(w, http.StatusNotFound, "App timed out and is no longer available.")
-			return
-		} else if err != nil {
-			responseError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		logs, err := job.GetLogs(app.ID)
-		if err != nil {
-			responseError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		ps, err := job.GetPS(app.ID)
-		if err != nil {
-			responseError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		deployLogs, err := store.FindDeployLogsForApp(id)
-		if err != nil {
-			responseError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		responseSuccess(w, struct {
-			*storage.App
-			Logs       string                 `json:"logs"`
-			DeployLogs []*storage.DeployEvent `json:"deployLogs"`
-			PS         string                 `json:"ps"`
-		}{app, logs, deployLogs, ps})
-	}
-}
-
-func cleanUpSession(w http.ResponseWriter, r *http.Request) error {
-	session, err := sessionStore.Get(r, sessionName)
-	if err != nil {
-		responseError(w, http.StatusBadRequest, "Please delete your cookies.")
-		return err
-	}
-	delete(session.Values, sessionCurrentDeployment)
-	if err := session.Save(r, w); err != nil {
-		responseError(w, http.StatusInternalServerError, err.Error())
-		return err
-	}
-	return nil
-}
-
-func eventWrapperAction(sseBroker *sse.Broker) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		setCORSHeaders(w, r)
-		sseBroker.EventHandler(w, r)
-	}
-}
-
-func deployWrapperAction(sseBroker *sse.Broker, em *event.EventManager, store *mongo.MongoStorage) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		setCORSHeaders(w, r)
-		deployAction(w, r, sseBroker, em, store)
-	}
-}
-
-func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker, em *event.EventManager, store *mongo.MongoStorage) {
-	session, err := sessionStore.Get(r, sessionName)
-	if err != nil {
-		responseError(w, http.StatusBadRequest, "Please delete your cookies.")
-		return
-	}
-
-	// Check if the user is currently deploying an application and switch to that one.
-	if v, ok := session.Values[sessionCurrentDeployment].(string); ok && len(v) > 0 {
-		app, err := store.GetApp(v)
-		if err != nil {
-			cleanUpSession(w, r)
-			log.Printf("Could not fetch app from cookie: %s", err.Error())
-		} else if !sseBroker.IsChannelOpen(app.ID) {
-			cleanUpSession(w, r)
-			log.Printf("Channel %s does not exist any more", app.ID)
-		} else {
-			responseSuccess(w, app)
-			return
-		}
-	}
-
-	// Parse body
-	dr := new(deployRequest)
-	decoder := json.NewDecoder(r.Body)
-	decoder.Decode(dr)
-
-	// Validate URL
-	regExpression := "(https|http):\\/\\/github\\.com\\/[a-zA-Z0-9\\-\\_\\.]+/[a-zA-Z0-9\\-\\_\\.]+\\.git"
-	if match, _ := regexp.MatchString(regExpression, dr.Repository); !match {
-		responseError(w, http.StatusBadRequest, "I only support GitHub.")
-		return
-	}
-
-	app := uuid.NewRandom().String()
-	if ttl, err := time.ParseDuration(envAppTtl); err != nil {
-		log.Println(err.Error())
-		responseError(w, http.StatusInternalServerError, err.Error())
-		return
-	} else {
-		appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository, ip.GetRemoteAddr(r))
-		if err != nil {
-			responseError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		session.Values[sessionCurrentDeployment] = appEntity.ID
-		if err := session.Save(r, w); err != nil {
-			responseError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		go runJobs(w, r, em, dr, appEntity, sseBroker, session, store)
-		responseSuccess(w, appEntity)
-	}
-}
-
-func runJobs(w http.ResponseWriter, r *http.Request, em *event.EventManager, dr *deployRequest, app *storage.App, sseBroker *sse.Broker, session *gorillasession.Session, store *mongo.MongoStorage) {
-	sseBroker.OpenChannel(app.ID)
-	sseBroker.Start(app.ID)
-	defer func() {
-		// Give the client the chance to read the output...
-		time.Sleep(15 * time.Second)
-		sseBroker.CloseChannel(app.ID)
-	}()
-
-	em.Trigger("app.created", gde.New(app.ID, app.ID))
-
-	destination, err := job.Clone(em, app.ID, dr.Repository)
-	if err != nil {
-		log.Printf("Error in job.clone %s: %s", app.ID, err.Error())
-		return
-	}
-
-	if err = job.Parse(em, app.ID, destination); err != nil {
-		log.Printf("Error in job.parse %s: %s", app.ID, err.Error())
-		return
-	}
-
-	if err = job.Deploy(em, app.ID, destination); err != nil {
-		log.Printf("Error in job.deploy %s: %s", app.ID, err.Error())
-		return
-	}
-
-	cluster, err := job.GetCluster(em, app.ID)
-	if err != nil {
-		log.Printf("Error in job.getCluster %s: %s", app.ID, err.Error())
-		return
-	}
-
-	app.URL = fmt.Sprintf("%s.%s", app.ID, cluster.Host)
-	if err := store.UpdateApp(app); err != nil {
-		responseError(w, http.StatusInternalServerError, err.Error())
-		log.Printf("Error %s: %s", app.ID, err.Error())
-		return
-	}
-
-	if err = job.Cleanup(em, app.ID, destination); err != nil {
-		log.Printf("Error in job.cleanup %s: %s", app.ID, err.Error())
-		return
-	}
-
-	log.Println("Deployment successful.")
-	em.Trigger("app.deployed", gde.New(app.ID, app.URL))
-}
-
-// Set the different CORS headers required for CORS request
-func setCORSHeaders(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Origin", corsAllowOrigin)
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-}
-
-func responseError(w http.ResponseWriter, code int, message string) {
-	log.Printf("Error %d: %s", code, message)
-	response := responder.New(ApiVersion)
-	response.Write(w, response.Error(code, message))
-}
-
-func responseSuccess(w http.ResponseWriter, data interface{}) {
-	response := responder.New(ApiVersion)
-	response.Write(w, response.Success(data))
 }

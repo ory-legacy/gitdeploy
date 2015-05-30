@@ -2,8 +2,8 @@ package sse
 
 import (
 	"encoding/json"
-	"log"
 	"fmt"
+	"log"
 )
 
 // An SSE event
@@ -21,7 +21,7 @@ func NewEvent(app, data, eventName string) *Event {
 	return j
 }
 
-func (j *Event) SSEify() (string) {
+func (j *Event) SSEify() string {
 	r, err := json.MarshalIndent(j, "data: ", "\t")
 	if err != nil {
 		msg := fmt.Sprintf("Could not marshall %s: %s", j, err.Error())

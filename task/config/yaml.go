@@ -1,4 +1,4 @@
-package yaml
+package config
 
 type Config struct {
 	ProcConfig ProcConfig   `yaml:"procs"`
@@ -10,7 +10,7 @@ type Config struct {
 
 type ProcConfig map[string]string
 
-type EnvConfig [string]string
+type EnvConfig map[string]string
 
 type AddonsConfig map[string]DatabaseConfig
 
@@ -21,4 +21,5 @@ type DatabaseConfig struct {
 	Port     string `yaml:"port"`
 	Host     string `yaml:"host"`
 	URL      string `yaml:"url"`
+	Database string `yaml:"database"`
 }

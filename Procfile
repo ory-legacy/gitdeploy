@@ -1,1 +1,1 @@
-web: gitdeploy
+web: gitdeploy -init

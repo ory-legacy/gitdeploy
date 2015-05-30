@@ -1,10 +1,10 @@
 package task
 
 import (
+	"errors"
 	"github.com/ory-am/event"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"errors"
 )
 
 var errMock = errors.New("error")
@@ -17,7 +17,7 @@ func (m *listener) Trigger(event string, _ interface{}) {
 	m.called[event]++
 }
 
-type command struct {}
+type command struct{}
 
 func mockTask(w WorkerLog) error {
 	w.Add("abc")
