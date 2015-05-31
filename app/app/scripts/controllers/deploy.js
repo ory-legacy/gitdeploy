@@ -44,7 +44,7 @@ angular.module('gitdeployApp')
             }
 
             $scope.error = false;
-            $http.post(endpoint.deploy + '/deployments', {repository: repository}).
+            $http.post(endpoint.deploy + '/deployments', {repository: repository, ref: 'origin/master'}).
                 success(function (data) {
                     var el = sse(data.data.id);
                     $scope.app = data.data.id;

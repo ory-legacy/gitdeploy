@@ -54,7 +54,7 @@ angular.module('gitdeployApp')
                             }, 20000);
                         }
                     });
-                }
+                };
 
                 update();
             });
