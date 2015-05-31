@@ -46,7 +46,7 @@ var (
 )
 
 type deployRequest struct {
-	Repository string `json:"repository",validate:"regex=^(https|http):\\/\\/github\\.com\\/[a-zA-Z0-9\\-\\_\\.]+/[a-zA-Z0-9\\-\\_\\.]+\\.git$"`
+	Repository string `json:"repository",validate:"regex=^(https|http):\\/\\/github\\.com\\/[a-zA-Z0-9\\-\\_\\.]+/[a-zA-Z0-9\\-\\_\\.]+$"`
 	Ref        string `json:"ref",validate:"regex=^(origin\\/.*|tags\\/.*|[a-z0-9]+)$"`
 }
 
@@ -193,6 +193,7 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 		return
 	}
 
+	dr.Repository = dr.Repository + ".git"
 	appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository, ip.GetRemoteAddr(r), dr.Ref)
 	if err != nil {
 		responseError(w, http.StatusInternalServerError, err.Error())
