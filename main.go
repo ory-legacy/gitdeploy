@@ -1,6 +1,8 @@
 package main
 
 import (
+	"code.google.com/p/go-uuid/uuid"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -9,40 +11,38 @@ import (
 	"github.com/ory-am/common/mgopath"
 	"github.com/ory-am/event"
 	"github.com/ory-am/gitdeploy/eco"
+	"github.com/ory-am/gitdeploy/ip"
 	"github.com/ory-am/gitdeploy/job"
+	"github.com/ory-am/gitdeploy/job/deploy"
 	gdLog "github.com/ory-am/gitdeploy/log"
 	"github.com/ory-am/gitdeploy/public"
 	"github.com/ory-am/gitdeploy/sse"
-	"github.com/ory-am/gitdeploy/storage/mongo"
-	"code.google.com/p/go-uuid/uuid"
-	"encoding/json"
-	"github.com/ory-am/gitdeploy/ip"
-	"github.com/ory-am/gitdeploy/job/deploy"
 	"github.com/ory-am/gitdeploy/storage"
+	"github.com/ory-am/gitdeploy/storage/mongo"
 	"github.com/ory-am/gitdeploy/task"
 	"github.com/ory-am/gitdeploy/task/flynn"
+	"github.com/ory-am/google-json-style-response/responder"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/validator.v2"
 	"log"
 	"net/http"
-	"gopkg.in/validator.v2"
 	"time"
-	"github.com/ory-am/google-json-style-response/responder"
 )
 
 const (
 	sessionCurrentDeployment = "cdid"
-	sessionName = "gdp"
+	sessionName              = "gdp"
 )
 
 var (
-	ApiVersion = "1.0"
-	host = env.Getenv("HOST", "")
-	port = env.Getenv("PORT", "7654")
-	envAppTtl = env.Getenv("APP_TTL", "30m")
-	envClusterConf = env.Getenv("FLYNN_CLUSTER_CONFIG", "")
+	ApiVersion      = "1.0"
+	host            = env.Getenv("HOST", "")
+	port            = env.Getenv("PORT", "7654")
+	envAppTtl       = env.Getenv("APP_TTL", "30m")
+	envClusterConf  = env.Getenv("FLYNN_CLUSTER_CONFIG", "")
 	corsAllowOrigin = env.Getenv("CORS_ALLOW_ORIGIN", "http://localhost:9000")
-	sessionStore = gorillasession.NewCookieStore([]byte(env.Getenv("SESSION_SECRET", "changme")))
-	envMongoPath = env.Getenv("MONGODB", "mongodb://localhost:27017/gitdeploy")
+	sessionStore    = gorillasession.NewCookieStore([]byte(env.Getenv("SESSION_SECRET", "changme")))
+	envMongoPath    = env.Getenv("MONGODB", "mongodb://localhost:27017/gitdeploy")
 )
 
 type deployRequest struct {

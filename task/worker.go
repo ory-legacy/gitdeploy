@@ -20,7 +20,7 @@ type workerEvent struct {
 	message string
 	err     error
 	// offset should be int32 or float64
-	offset  time.Time
+	offset time.Time
 }
 
 // Add adds an event to the channel

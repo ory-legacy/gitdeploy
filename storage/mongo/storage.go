@@ -51,7 +51,7 @@ func (s *MongoStorage) AddApp(app string, ttl time.Time, repository, ip, ref str
 		Killed:     false,
 		Repository: repository,
 		IP:         ip,
-		Ref: ref,
+		Ref:        ref,
 	}
 	err = s.getCollection(appCollection).Insert(a)
 	return a, err

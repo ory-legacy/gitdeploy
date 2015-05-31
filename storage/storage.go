@@ -27,7 +27,7 @@ type App struct {
 	Killed     bool        `json:"killed",bson:"killed"`
 	IP         string      `json:"ip",bson:"ip"`
 	Appliances []Appliance `json:"appliances",bson:"appliances"`
-	Ref string `json:"ref",bson:"ref"`
+	Ref        string      `json:"ref",bson:"ref"`
 }
 
 // Appliance is the appliance entity.

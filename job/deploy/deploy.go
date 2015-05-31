@@ -1,17 +1,17 @@
 package deploy
 
 import (
+	"code.google.com/p/go-uuid/uuid"
+	"errors"
+	"fmt"
 	"github.com/ory-am/gitdeploy/storage"
 	"github.com/ory-am/gitdeploy/task"
 	"github.com/ory-am/gitdeploy/task/config"
 	"github.com/ory-am/gitdeploy/task/flynn"
+	"github.com/ory-am/gitdeploy/task/flynn/appliance/mongo"
 	"github.com/ory-am/gitdeploy/task/git"
 	"github.com/ory-am/gitdeploy/task/janitor"
-	"code.google.com/p/go-uuid/uuid"
 	"strings"
-	"fmt"
-	"github.com/ory-am/gitdeploy/task/flynn/appliance/mongo"
-	"errors"
 )
 
 func CreateJob(w task.WorkerLog, store storage.Storage, app *storage.App) (tasks task.TaskList) {
@@ -20,7 +20,7 @@ func CreateJob(w task.WorkerLog, store storage.Storage, app *storage.App) (tasks
 	f := new(flynn.EnvHelper)
 
 	return task.TaskList{
-		"git.clone": git.Clone(app.Repository, dir),
+		"git.clone":    git.Clone(app.Repository, dir),
 		"git.checkout": git.Checkout(app.ID, dir, app.Ref),
 		"config.parse": config.Parse(dir, func(c *config.Config) {
 			conf = c
