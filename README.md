@@ -94,6 +94,21 @@ $ go run main.go
 
 Go to [localhost:7654](http://localhost:7654)
 
+
+### Environment variables
+
+Change these values in production.
+
+|   Name                | Default                               | Description |
+|-----------------------|---------------------------------------|-------------|
+| HOST                  | *empy*                                | Host to listen on, e.g `localhost`. |
+| PORT                  | `7654`                                | Port to listen on. |
+| APP_TTL               | `30m`                                 | Amount of apps' TTL in minutes. |
+| FLYNN_CLUSTER_CONFIG  | *empty*                               | Point gitdeploy to a flynn cluster. Is required when running `go run main.go -init`. Has the following format: `-g dev.localflynn.com:2222 -p KGCENkp53YF5OvOKkZIry71+czFRkSw2ZdMszZ/0ljs= default https://controller.dev.localflynn.com e09dc5301d72be755a3d666f617c4600`. |
+| CORS_ALLOW_ORIGIN     | `http://localhost:9000`               | Required, when the html app is served by grunt. |
+| SESSION_SECRET        | `changeme`                            | The session secret, choose something safe. |
+| MONGODB               | `mongodb://localhost:27017/gitdeploy` | URL to MongoDB. Format: `mongodb://[<user>:<password>@]<hostname>:<port>/<database>`. |
+
 ## To do
 
 * Run git init on startup
