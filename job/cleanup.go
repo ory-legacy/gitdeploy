@@ -16,8 +16,17 @@ func KillAppsOnHitList(store storage.Storage) {
 			log.Printf("Could not fetch kill-list: %s", err)
 		} else {
 			for _, app := range apps {
+				for _, appliance := range app.Appliances {
+					go func() {
+						e := exec.Command("flynn", "-a", appliance.ID, "delete", "-y")
+						if out, err := e.CombinedOutput(); err != nil {
+							log.Printf("An error occured while cleanup %s. Reason: %s", err.Error(), out)
+							return
+						}
+					}()
+				}
+
 				go func() {
-					fmt.Println([]string{"flynn", "-a", app.ID, "delete", "-y"})
 					e := exec.Command("flynn", "-a", app.ID, "delete", "-y")
 					out, err := e.CombinedOutput()
 					reason := strings.Trim(string(out), " \n\r")
