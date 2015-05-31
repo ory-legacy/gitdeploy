@@ -43,7 +43,7 @@ func (s *MongoStorage) AddAppliance(app, appliance, name string) (*storage.Appli
 	return a, s.getCollection(appCollection).Update(bson.M{"id": app}, bson.M{"$push": bson.M{"appliances": a}})
 }
 
-func (s *MongoStorage) AddApp(app string, ttl time.Time, repository, ip string) (a *storage.App, err error) {
+func (s *MongoStorage) AddApp(app string, ttl time.Time, repository, ip, ref string) (a *storage.App, err error) {
 	a = &storage.App{
 		ID:         app,
 		ExpiresAt:  ttl,
@@ -51,6 +51,7 @@ func (s *MongoStorage) AddApp(app string, ttl time.Time, repository, ip string) 
 		Killed:     false,
 		Repository: repository,
 		IP:         ip,
+		Ref: ref,
 	}
 	err = s.getCollection(appCollection).Insert(a)
 	return a, err

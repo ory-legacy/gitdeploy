@@ -6,7 +6,7 @@ import "time"
 // Storage is GitDeploy's persistent API
 type Storage interface {
 	// AddApp adds an app to the database. Returns the app and errors from the database.
-	AddApp(app string, expiresAt time.Time, repository, ip string) (*App, error)
+	AddApp(app string, expiresAt time.Time, repository, ip, ref string) (*App, error)
 	GetApp(id string) (*App, error)
 	FindAppsOnKillList() ([]*App, error)
 	KillApp(app *App) error
@@ -27,6 +27,7 @@ type App struct {
 	Killed     bool        `json:"killed",bson:"killed"`
 	IP         string      `json:"ip",bson:"ip"`
 	Appliances []Appliance `json:"appliances",bson:"appliances"`
+	Ref string `json:"ref",bson:"ref"`
 }
 
 // Appliance is the appliance entity.

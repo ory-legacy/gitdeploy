@@ -21,6 +21,7 @@ func CreateJob(w task.WorkerLog, store storage.Storage, app *storage.App) (tasks
 
 	return task.TaskList{
 		"git.clone": git.Clone(app.Repository, dir),
+		"git.checkout": git.Checkout(app.ID, dir, app.Ref),
 		"config.parse": config.Parse(dir, func(c *config.Config) {
 			conf = c
 		}),
