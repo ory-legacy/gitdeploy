@@ -1,15 +1,14 @@
 {
 	"ImportPath": "github.com/ory-am/gitdeploy",
 	"GoVersion": "go1.4.2",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/go-uuid/uuid",
 			"Comment": "null-15",
 			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
-		},
-		{
-			"ImportPath": "github.com/go-errors/errors",
-			"Rev": "01d535a7e0d0c52e283f462be8ceeb38e5bcaeeb"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
@@ -29,11 +28,11 @@
 		},
 		{
 			"ImportPath": "github.com/ory-am/common/env",
-			"Rev": "e42bae29998fb8c67ba14851e012148532707e4b"
+			"Rev": "5ec6289dbfc020403f9b2d1f19a71f4c4e0f24cd"
 		},
 		{
 			"ImportPath": "github.com/ory-am/common/mgopath",
-			"Rev": "e42bae29998fb8c67ba14851e012148532707e4b"
+			"Rev": "5ec6289dbfc020403f9b2d1f19a71f4c4e0f24cd"
 		},
 		{
 			"ImportPath": "github.com/ory-am/event",
@@ -44,9 +43,17 @@
 			"Rev": "49cfd34856d402e4a0b5ab35c6aab187e9e74f58"
 		},
 		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Rev": "dab07ac62d4905d3e48d17dc549c684ac3b7c15a"
+		},
+		{
 			"ImportPath": "gopkg.in/mgo.v2",
 			"Comment": "r2015.01.24",
 			"Rev": "c6a7dce14133ccac2dcac3793f1d6e2ef048503a"
+		},
+		{
+			"ImportPath": "gopkg.in/validator.v2",
+			"Rev": "8e445b9dc14ab1a1a78cc1f712df991307173ee6"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

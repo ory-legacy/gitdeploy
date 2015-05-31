@@ -89,13 +89,13 @@ var marshalTests = []struct {
 		map[string]interface{}{"v": ""},
 		"v: \"\"\n",
 	}, {
-		map[string][]string{"v": {"A", "B"}},
+		map[string][]string{"v": []string{"A", "B"}},
 		"v:\n- A\n- B\n",
 	}, {
-		map[string][]string{"v": {"A", "B\nC"}},
+		map[string][]string{"v": []string{"A", "B\nC"}},
 		"v:\n- A\n- |-\n  B\n  C\n",
 	}, {
-		map[string][]interface{}{"v": {"A", 1, map[string][]int{"B": {2, 3}}}},
+		map[string][]interface{}{"v": []interface{}{"A", 1, map[string][]int{"B": []int{2, 3}}}},
 		"v:\n- A\n- 1\n- B:\n  - 2\n  - 3\n",
 	}, {
 		map[string]interface{}{"a": map[interface{}]interface{}{"b": "c"}},
@@ -330,7 +330,7 @@ var marshalErrorTests = []struct {
 	panic: `Duplicated key 'b' in struct struct \{ B int; .*`,
 }, {
 	value: &struct {
-		A int
+		A       int
 		B map[string]int ",inline"
 	}{1, map[string]int{"a": 2}},
 	panic: `Can't have key "a" in inlined map; conflicts with struct field`,
