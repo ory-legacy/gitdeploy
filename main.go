@@ -193,7 +193,9 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 		return
 	}
 
-	dr.Repository = dr.Repository + ".git"
+	if dr.Repository[0:len(dr.Repository)-4] != ".git" {
+		dr.Repository = dr.Repository + ".git"
+	}
 	appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository, ip.GetRemoteAddr(r), dr.Ref)
 	if err != nil {
 		responseError(w, http.StatusInternalServerError, err.Error())
@@ -210,13 +212,16 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 	go func() {
 		sseBroker.OpenChannel(app)
 		sseBroker.Start(app)
+		l := make(task.WorkerLog)
+		defer close(l)
 		defer func() {
 			// Give the client the chance to read the output...
 			time.Sleep(15 * time.Second)
 			sseBroker.CloseChannel(app)
 		}()
-		l := make(task.WorkerLog)
+
 		tasks := deploy.CreateJob(l, store, appEntity)
+		fmt.Printf("%s", tasks)
 		if err := task.RunJob(l, app, em, tasks); err != nil {
 			log.Printf("RUNJOB ERROR: %s", err)
 		}
