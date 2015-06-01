@@ -71,7 +71,7 @@ func (b *Broker) Start(channel string) error {
 	}
 
 	go func() {
-		log.Printf("Starting channel channel %s...", channel)
+		log.Printf("Starting channel %s...", channel)
 		for {
 			if _, ok := b.channels[channel]; !ok {
 				// Channel closed
