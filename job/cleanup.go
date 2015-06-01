@@ -1,7 +1,6 @@
 package job
 
 import (
-	"fmt"
 	"github.com/ory-am/gitdeploy/storage"
 	"log"
 	"os/exec"
