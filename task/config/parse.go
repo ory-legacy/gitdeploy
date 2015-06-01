@@ -25,14 +25,20 @@ func Parse(wd string, f func(*Config)) func(task.WorkerLog) error {
 			return errors.New(fmt.Sprintf("Could not parse .gitdeploy.yml: %s", err.Error()))
 		}
 
+		if c.Version == "" {
+			c.Version = "0.1"
+		} else if c.Version != "0.1" {
+			return errors.New(fmt.Sprintf("Gitdeploy.yml version %s not supported.", c.Version))
+		}
+
 		f(c)
 		return nil
 	}
 }
 
-func ParseGodir(config *Config, wd string) func(task.WorkerLog) error {
+func ParseGodir(c *Config, wd string) func(task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
-		if config.Godir != "" {
+		if c.Godir != "" {
 			godirPath := wd + "/.godir"
 			if _, err := os.Stat(godirPath); err == nil {
 				w.Add("WARNING: overriding existing .godir.")
@@ -41,7 +47,7 @@ func ParseGodir(config *Config, wd string) func(task.WorkerLog) error {
 				}
 			}
 
-			pm := []byte(config.Godir)
+			pm := []byte(c.Godir)
 			if err := ioutil.WriteFile(godirPath, pm, 0644); err != nil {
 				return errors.New(fmt.Sprintf("Could not create .godir: %s", err.Error()))
 			}
@@ -56,20 +62,20 @@ func ParseGodir(config *Config, wd string) func(task.WorkerLog) error {
 	}
 }
 
-func ParseBuildpack(config *Config, f *flynn.EnvHelper) func(task.WorkerLog) error {
+func ParseBuildpack(c *Config, f *flynn.EnvHelper) func(task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
-		if len(config.Buildpack) > 0 {
-			w.Add(fmt.Sprintf("Found custom buildpack url: %s.", config.Buildpack))
-			f.AddEnvVar("BUILDPACK_URL", config.Buildpack)
+		if len(c.Buildpack) > 0 {
+			w.Add(fmt.Sprintf("Found custom buildpack url: %s.", c.Buildpack))
+			f.AddEnvVar("BUILDPACK_URL", c.Buildpack)
 		}
 		return nil
 	}
 }
 
-func ParseEnv(config *Config, f *flynn.EnvHelper) func(task.WorkerLog) error {
+func ParseEnv(c *Config, f *flynn.EnvHelper) func(task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
-		if len(config.Env) > 0 {
-			for k, v := range config.Env {
+		if len(c.Env) > 0 {
+			for k, v := range c.Env {
 				w.Add(fmt.Sprintf("Found env var %s=%s", k, v))
 				f.AddEnvVar(k, v)
 			}
@@ -78,9 +84,9 @@ func ParseEnv(config *Config, f *flynn.EnvHelper) func(task.WorkerLog) error {
 	}
 }
 
-func ParseProcs(config *Config, wd string) func(task.WorkerLog) error {
+func ParseProcs(c *Config, wd string) func(task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
-		if len(config.ProcConfig) > 0 {
+		if len(c.ProcConfig) > 0 {
 			procfilePath := wd + "/Procfile"
 			if _, err := os.Stat(procfilePath); err == nil {
 				w.Add("WARNING: overriding existing Procfile.")
@@ -89,7 +95,7 @@ func ParseProcs(config *Config, wd string) func(task.WorkerLog) error {
 				}
 			}
 
-			pm, err := yaml.Marshal(config.ProcConfig)
+			pm, err := yaml.Marshal(c.ProcConfig)
 			if err != nil {
 				return errors.New(fmt.Sprintf("Could not parse procs section: %s", err.Error()))
 			}

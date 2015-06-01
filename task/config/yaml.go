@@ -1,6 +1,7 @@
 package config
 
 type Config struct {
+	Version    string       `yaml:"version"`
 	ProcConfig ProcConfig   `yaml:"procs"`
 	Godir      string       `yaml:"godir"`
 	Buildpack  string       `yaml:"buildpack"`
