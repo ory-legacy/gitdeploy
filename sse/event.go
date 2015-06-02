@@ -22,11 +22,11 @@ func NewEvent(app, data, eventName string) *Event {
 }
 
 func (j *Event) SSEify() string {
-	r, err := json.MarshalIndent(j, "data: ", "\t")
+	r, err := json.Marshal(j)
 	if err != nil {
 		msg := fmt.Sprintf("Could not marshall %s: %s", j, err.Error())
 		log.Println(msg)
 		return "data: " + msg
 	}
-	return string(r)
+	return "data: " + string(r)
 }

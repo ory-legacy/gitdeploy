@@ -183,7 +183,7 @@ func (b *Broker) EventHandler(w http.ResponseWriter, r *http.Request) {
 		case e := <-messageChan:
 			if len(e.Message) > 0 {
 				// Write to the ResponseWriter, `w`.
-				fmt.Fprintf(w, "data: %s\n\n", e.Message)
+				fmt.Fprintf(w, "%s\n\n", e.Message)
 
 				// Flush the response. This is only possible if
 				// the response supports streaming.

@@ -114,8 +114,10 @@ func (s *MongoStorage) DeployEventIsRead(e *storage.DeployEvent) error {
 func (s *MongoStorage) Trigger(name string, data interface{}) {
 	if e, ok := data.(*sse.Event); ok {
 		if _, err := s.AddDeployEvent(e.App, e.SSEify()); err != nil {
-			log.Printf(err.Error())
+			log.Printf("%s", err.Error())
 		}
+	} else {
+		log.Fatalf("Log listener: Type mismatch: %s is not *sse.Event", data)
 	}
 }
 
@@ -130,8 +132,10 @@ func (l *MongoStorage) AttachAggregate(em *event.EventManager) {
 	em.AttachListener("git.add", l)
 	em.AttachListener("git.commit", l)
 	em.AttachListener("app.release", l)
+	em.AttachListener("app.create", l)
 	em.AttachListener("app.cleanup", l)
 	em.AttachListener("app.deployed", l)
+	em.AttachListener("error", l)
 }
 
 func (s *MongoStorage) getCollection(name string) *mgo.Collection {

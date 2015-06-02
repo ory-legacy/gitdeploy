@@ -16,27 +16,29 @@ func KillAppsOnHitList(store storage.Storage) {
 		} else {
 			for _, app := range apps {
 				for _, appliance := range app.Appliances {
-					go func() {
+					go func(appliance *storage.Appliance) {
 						e := exec.Command("flynn", "-a", appliance.ID, "delete", "-y")
 						if out, err := e.CombinedOutput(); err != nil {
 							log.Printf("An error occured while cleanup %s. Reason: %s", err.Error(), out)
 							return
 						}
-					}()
+					}(&appliance)
 				}
 
-				go func() {
+				go func(app *storage.App) {
 					e := exec.Command("flynn", "-a", app.ID, "delete", "-y")
 					out, err := e.CombinedOutput()
 					reason := strings.Trim(string(out), " \n\r")
-					if reason == "controller: resource not found" {
-						log.Printf("App %s is not known to controller.", app.ID)
-					} else if err != nil {
+					if err != nil && reason == "controller: resource not found" {
+						log.Printf("App %s is not known to controller: %s", app.ID, reason)
+					} else if err != nil && reason != "controller: resource not found" {
 						log.Printf("An error occured while cleanup %s. Reason: %s", err.Error(), out)
 						return
 					}
-					store.KillApp(app)
-				}()
+					if err := store.KillApp(app); err != nil {
+						log.Printf("Error while cleaning up %s: %s", app, err.Error())
+					}
+				}(app)
 			}
 		}
 		time.Sleep(15 * time.Second)

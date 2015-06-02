@@ -9,11 +9,11 @@ import (
 type Listener struct{}
 
 func (l *Listener) Trigger(event string, data interface{}) {
-	if e, ok := data.(sse.Event); ok {
+	if e, ok := data.(*sse.Event); ok {
 		log.Printf("Log listener: Event %s on app %s said: %s", event, e.App, e.Data)
 		return
 	}
-	log.Fatalf("Log listener: Type mismatch: %s is not job.Event", data)
+	log.Fatalf("Log listener: Type mismatch: %s is not sse.Event", data)
 }
 
 func (l *Listener) AttachAggregate(em *event.EventManager) {
@@ -27,6 +27,8 @@ func (l *Listener) AttachAggregate(em *event.EventManager) {
 	em.AttachListener("git.add", l)
 	em.AttachListener("git.commit", l)
 	em.AttachListener("app.release", l)
+	em.AttachListener("app.create", l)
 	em.AttachListener("app.cleanup", l)
+	em.AttachListener("error", l)
 	em.AttachListener("app.deployed", l)
 }

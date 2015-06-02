@@ -58,7 +58,6 @@ func main() {
 	eco.IsGitAvailable()
 	eco.IsFlynnAvailable()
 	if b := flag.Bool("init", false, "Initialize flynn and git"); *b {
-		eco.InitGit()
 		eco.InitFlynn(envClusterConf)
 	}
 
@@ -151,7 +150,7 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 		responseSuccess(w, struct {
 			*storage.App
 			Logs       string                 `json:"logs"`
-			DeployLogs []*storage.DeployEvent `json:"deployLogs"`
+			DeployLogs []*storage.DeployEvent `json:"deployLogs,inline"`
 			PS         string                 `json:"ps"`
 		}{app, logs, deployLogs, ps})
 	}
@@ -212,18 +211,15 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 	go func() {
 		sseBroker.OpenChannel(app)
 		sseBroker.Start(app)
-		l := make(task.WorkerLog)
-		defer close(l)
 		defer func() {
 			// Give the client the chance to read the output...
 			time.Sleep(15 * time.Second)
 			sseBroker.CloseChannel(app)
 		}()
-
-		tasks := deploy.CreateJob(l, store, appEntity)
-		fmt.Printf("%s", tasks)
-		if err := task.RunJob(l, app, em, tasks); err != nil {
-			log.Printf("RUNJOB ERROR: %s", err)
+		tasks := deploy.CreateJob(store, appEntity)
+		err := task.RunJob(app, em, tasks)
+		if err != nil {
+			log.Printf("Error in task.RunJob: %s", err)
 		}
 	}()
 }

@@ -20,6 +20,9 @@ func (f *EnvHelper) AddEnvVar(key, value string) {
 }
 
 func (f *EnvHelper) CommitEnvVars(app string) error {
+	if len(f.envVars) == 0 {
+		return nil
+	}
 	return exec.Command("flynn", append([]string{"-a", app, "env", "set"}, f.envVars...)...).Run()
 }
 

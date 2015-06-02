@@ -2,12 +2,13 @@ package flynn
 
 import (
 	"github.com/ory-am/gitdeploy/task"
+	"log"
 )
 
-func ScaleApp(app string, pn string) func(w task.WorkerLog) error {
+func ScaleApp(app, pn, amount string) func(w task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
 		w.Add("Releasing container...")
-		if err := task.Exec(w, "", "flynn", "-a", app, "scale", pn+"=1"); err != nil {
+		if err := task.Exec(w, "", "flynn", "-a", app, "scale", pn+"="+amount); err != nil {
 			return err
 		}
 		return nil
@@ -17,6 +18,7 @@ func ScaleApp(app string, pn string) func(w task.WorkerLog) error {
 func ReleaseContainer(app, manifest, url string) func(w task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
 		w.Add("Releasing container...")
+		log.Println(w, "", "flynn", "-a", app, "release", "add", "-f", manifest, url)
 		if err := task.Exec(w, "", "flynn", "-a", app, "release", "add", "-f", manifest, url); err != nil {
 			return err
 		}
@@ -32,20 +34,25 @@ func AddKey(w task.WorkerLog) error {
 	return nil
 }
 
-func CreateApp(app, wd string) func(w task.WorkerLog) error {
-	return func(w task.WorkerLog) error {
+func CreateApp(app, wd string, noRemote bool) func(w task.WorkerLog) error {
+	return func(w task.WorkerLog) (err error) {
 		w.Add("Creating app...")
-		if err := task.Exec(w, wd, "flynn", "create", "-y", app); err != nil {
+		if noRemote {
+			err = task.Exec(w, wd, "flynn", "create", "-y", `-r ""`,app)
+		} else {
+			err = task.Exec(w, wd, "flynn", "create", "-y", app)
+		}
+		if err != nil {
 			return err
 		}
 		return nil
 	}
 }
 
-func ReleaseApp(wd string) func(w task.WorkerLog) error {
+func ReleaseApp(wd, app string) func(w task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
 		w.Add("Releasing app...")
-		if err := task.Exec(w, wd, "git", "push", "flynn", "master", "--progress"); err != nil {
+		if err := task.Exec(w, wd, "git", "push", "flynn", "master", "--progress", app + ":master"); err != nil {
 			return err
 		}
 		return nil

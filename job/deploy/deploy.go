@@ -10,11 +10,9 @@ import (
     "github.com/ory-am/gitdeploy/task/flynn"
     "github.com/ory-am/gitdeploy/task/flynn/appliance/mongo"
     "github.com/ory-am/gitdeploy/task/git"
-    "github.com/ory-am/gitdeploy/task/janitor"
+    //"github.com/ory-am/gitdeploy/task/janitor"
     "strings"
 )
-
-var configs map[string]*config.Config
 
 func CreateJob(store storage.Storage, app *storage.App) (tasks *task.TaskList) {
     var conf *config.Config
@@ -24,6 +22,7 @@ func CreateJob(store storage.Storage, app *storage.App) (tasks *task.TaskList) {
     tasks = new(task.TaskList)
     tasks.Add("git.clone", git.Clone(app.Repository, dir))
     tasks.Add("git.checkout", git.Checkout(app.ID, dir, app.Ref))
+    tasks.Add("app.create", flynn.CreateApp(app.ID, dir, false))
     tasks.Add("config.parse", config.Parse(dir, func(c *config.Config) {
         conf = c
     }))
@@ -49,8 +48,8 @@ func CreateJob(store storage.Storage, app *storage.App) (tasks *task.TaskList) {
     })
     tasks.Add("git.add", git.AddAll(dir))
     tasks.Add("git.commit", git.Commit(dir))
-    tasks.Add("app.release", flynn.ReleaseApp(dir))
-    tasks.Add("app.cleanup", janitor.Cleanup(dir))
+    tasks.Add("app.release", flynn.ReleaseApp(dir, app.ID))
+    // tasks.Add("app.cleanup", janitor.Cleanup(dir))
     tasks.Add("app.deployed", func(w task.WorkerLog) error {
         w.Add(app.ID)
         return nil
@@ -64,7 +63,7 @@ func createAppliances(c *config.Config, eh *flynn.EnvHelper, f func(name, id str
             id := uuid.NewRandom().String()
             switch strings.ToLower(name) {
                 case "mongodb":
-                w.Add("Attaching mongodb...")
+                w.Add(fmt.Sprintf("Attaching mongodb with id %s", id))
                 mongo.Create(id, &conf, eh)(w)
                 return f(name, id)
                 default:

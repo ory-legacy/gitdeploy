@@ -27,10 +27,6 @@ func Create(id string, c *config.DatabaseConfig, f *flynn.EnvHelper) func(w task
 		f.AddEnvVar(c.URL, "mongodb://"+id+":27017/"+db)
 		f.AddEnvVar(c.User, "")
 		f.AddEnvVar(c.Password, "")
-
-		if err := f.CommitEnvVars(id); err != nil {
-			return err
-		}
 		return nil
 	}
 }

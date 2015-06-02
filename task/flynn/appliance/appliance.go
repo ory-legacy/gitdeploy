@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
+	"strings"
 )
 
 const processName = "process"
@@ -16,19 +17,14 @@ const processName = "process"
 // Create deploys a docker image.
 // Workflow taken from https://gist.github.com/lmars/8be1952a8d03f8a31b17
 func Create(w task.WorkerLog, id, manifestPath, url string, port int) (err error) {
-	if err = flynn.CreateApp(id, "")(w); err != nil {
-		return
+	if err = flynn.CreateApp(id, "", true)(w); err != nil {
+		return err
+	} else if err = flynn.ReleaseContainer(id, manifestPath, url)(w); err != nil {
+		return err
+	} else if err = flynn.ScaleApp(id, processName, "1")(w); err != nil {
+		return err
 	}
-
-	// r := flynn.CreateReleaseContainer(manifest, "url://tbd", id, eventName, wd)
-	if err = flynn.ReleaseContainer(id, manifestPath, url)(w); err != nil {
-		return
-	}
-
-	if err = flynn.ScaleApp(id, processName)(w); err != nil {
-		return
-	}
-	return
+	return err
 }
 
 func CreateManifest(id string, port int, cmd []string) (string, error) {
@@ -53,7 +49,7 @@ func CreateManifest(id string, port int, cmd []string) (string, error) {
 			},
 		},
 	}
-	manifestPath := createDirectory(id) + "manifest.json"
+	manifestPath := createDirectory(id) + "/manifest.json"
 	if enc, err := json.MarshalIndent(m, "", "\t"); err != nil {
 		return "", errors.New(fmt.Sprintf("Could not marshall manifest: %s", err.Error()))
 	} else if err := ioutil.WriteFile(manifestPath, enc, 0644); err != nil {
@@ -63,9 +59,10 @@ func CreateManifest(id string, port int, cmd []string) (string, error) {
 }
 
 func createDirectory(id string) (destination string) {
-	destination = fmt.Sprintf("%s/%s/", os.TempDir(), id)
+	tempDir := strings.Trim(os.TempDir(), "/\\")
+	destination = fmt.Sprintf("/%s/%s", tempDir, id)
 	if runtime.GOOS == "windows" {
-		destination = fmt.Sprintf("%s\\%s\\", os.TempDir(), id)
+		destination = fmt.Sprintf("%s\\%s", tempDir, id)
 	}
 	return destination
 }

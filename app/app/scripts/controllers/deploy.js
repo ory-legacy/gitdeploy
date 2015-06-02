@@ -35,16 +35,14 @@ angular.module('gitdeployApp')
             $scope.app = '';
             $scope.deploying = false;
             $scope.retryUrl = window.location.href;
-            $scope.newsletterMessage =
-                'Get a cup of coffee or sign up to our newsletter while you\'re waiting for the deployment to finish.';
-
+            $scope.newsletterMessage = 'Get a cup of coffee or sign up to our newsletter while you\'re waiting for the deployment to finish.';
             if (repository === undefined || repository.length < 1) {
                 $scope.error = 'The repository query parameter is missing.';
                 return;
             }
 
             $scope.error = false;
-            $http.post(endpoint.deploy + '/deployments', {repository: repository, ref: 'origin/master'}).
+            $http.post(endpoint.deploy + '/deployments', {repository: repository, ref: $routeParams.ref}).
                 success(function (data) {
                     var el = sse(data.data.id);
                     $scope.app = data.data.id;
@@ -60,6 +58,8 @@ angular.module('gitdeployApp')
                         if (message.eventName === 'app.deployed') {
                             $scope.deploying = false;
                             window.location.href = '/dashboard/' + $scope.app;
+                        } else if (message.eventName === 'error') {
+                            $scope.error = 'Deployment failed: ' + message.data;
                         }
                         $scope.logs.unshift(message.data.replace(/(\r\n|\r|\n)/gm, '\n'));
                         $scope.logMessages = $scope.logs.join('\n');

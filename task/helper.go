@@ -18,7 +18,7 @@ func scanPipe(p io.ReadCloser, w WorkerLog) {
 func Exec(w WorkerLog, wd string, cmd string, args ...string) error {
 	e := exec.Command(cmd, args...)
 	if len(wd) != 0 {
-		e.Dir = wd
+		e.Dir = wd + "/"
 	}
 
 	if stdout, err := e.StdoutPipe(); err != nil {

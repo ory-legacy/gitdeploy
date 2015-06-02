@@ -3,7 +3,6 @@ package eco
 import (
 	"github.com/ory-am/gitdeploy/task"
 	"github.com/ory-am/gitdeploy/task/flynn"
-	"github.com/ory-am/gitdeploy/task/git"
 	"log"
 	"os/exec"
 	"runtime"
@@ -13,12 +12,6 @@ import (
 func IsGitAvailable() {
 	if _, err := exec.LookPath("git"); err != nil {
 		log.Fatal("Git CLI is required but not installed or not in path.")
-	}
-}
-
-func InitGit() {
-	if err := git.Init(); err != nil {
-		log.Fatalf("Could not init git: $s", err.Error())
 	}
 }
 

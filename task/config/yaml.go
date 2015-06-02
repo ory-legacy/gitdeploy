@@ -2,18 +2,12 @@ package config
 
 type Config struct {
 	Version    string       `yaml:"version"`
-	ProcConfig ProcConfig   `yaml:"procs"`
+	ProcConfig map[string]string   `yaml:"procs,flow"`
 	Godir      string       `yaml:"godir"`
 	Buildpack  string       `yaml:"buildpack"`
-	Addons     AddonsConfig `yaml:"addons"`
-	Env        EnvConfig    `yaml:"env"`
+	Addons     map[string]DatabaseConfig `yaml:"addons,flow"`
+	Env        map[string]string    `yaml:"env,flow"`
 }
-
-type ProcConfig map[string]string
-
-type EnvConfig map[string]string
-
-type AddonsConfig map[string]DatabaseConfig
 
 type DatabaseConfig struct {
 	Version  string `yaml:"version"`

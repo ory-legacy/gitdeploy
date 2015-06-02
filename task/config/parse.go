@@ -13,13 +13,10 @@ import (
 func Parse(wd string, f func(*Config)) func(task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
 		filename := wd + "/.gitdeploy.yml"
-		if _, err := os.Stat(filename); err != nil {
-			w.Add("WARN: .gitdeploy.yml not found, using defaults.")
-			return nil
-		}
-
 		c := new(Config)
-		if dat, err := ioutil.ReadFile(filename); err != nil {
+		if _, err := os.Stat(filename); err != nil {
+			w.Add(fmt.Sprintf("WARN: .gitdeploy.yml not found: %s", filename))
+		} else if dat, err := ioutil.ReadFile(filename); err != nil {
 			return errors.New(fmt.Sprintf("Could not open .gitdeploy.yml: %s", err.Error()))
 		} else if err = yaml.Unmarshal(dat, c); err != nil {
 			return errors.New(fmt.Sprintf("Could not parse .gitdeploy.yml: %s", err.Error()))
@@ -76,7 +73,6 @@ func ParseEnv(c *Config, f *flynn.EnvHelper) func(task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
 		if len(c.Env) > 0 {
 			for k, v := range c.Env {
-				w.Add(fmt.Sprintf("Found env var %s=%s", k, v))
 				f.AddEnvVar(k, v)
 			}
 		}
@@ -86,6 +82,7 @@ func ParseEnv(c *Config, f *flynn.EnvHelper) func(task.WorkerLog) error {
 
 func ParseProcs(c *Config, wd string) func(task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
+		fmt.Printf("%s", c)
 		if len(c.ProcConfig) > 0 {
 			procfilePath := wd + "/Procfile"
 			if _, err := os.Stat(procfilePath); err == nil {
