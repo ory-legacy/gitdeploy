@@ -5,12 +5,14 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 )
 
 func CreateDirectory(app string) (destination string) {
-	destination = fmt.Sprintf("%s/%s", os.TempDir(), app)
+	tempDir := strings.Trim(os.TempDir(), "/\\")
+	destination = fmt.Sprintf("%s/%s", tempDir, app)
 	if runtime.GOOS == "windows" {
-		destination = fmt.Sprintf("%s\\%s", os.TempDir(), app)
+		destination = fmt.Sprintf("%s\\%s", tempDir, app)
 	}
 	return
 }
