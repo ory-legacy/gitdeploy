@@ -59,10 +59,10 @@ func (em *EventManager) TriggerAndWait(event string, data interface{}) {
 	}
 	for _, listener := range em.listeners[event] {
 		wg.Add(1)
-		go func() {
+		go func(listener Listener) {
 			defer wg.Done()
 			listener.Trigger(event, data)
-		}()
+		}(listener)
 	}
 	wg.Wait()
 }

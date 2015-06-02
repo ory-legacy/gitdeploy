@@ -17,7 +17,7 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "94903de8c98a68d8b4483c529b26a5d146e386a2"
+			"Rev": "47e8f450ef38c857cdd922ec08862ca9d65a1c6d"
 		},
 		{
 			"ImportPath": "github.com/gorilla/securecookie",
@@ -37,7 +37,7 @@
 		},
 		{
 			"ImportPath": "github.com/ory-am/event",
-			"Rev": "8d952ce81ad1f96099dbc2b15c39a1633334763b"
+			"Rev": "5a61fab60536468048e843caaacfa28c97d26bc5"
 		},
 		{
 			"ImportPath": "github.com/ory-am/google-json-style-response/responder",
@@ -45,12 +45,12 @@
 		},
 		{
 			"ImportPath": "gopkg.in/mgo.v2",
-			"Comment": "r2015.01.24",
-			"Rev": "c6a7dce14133ccac2dcac3793f1d6e2ef048503a"
+			"Comment": "r2015.01.24-35-g01ee097",
+			"Rev": "01ee097136da162d1dd3c9b44fbdf3abf4fd6552"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "49c95bdc21843256fb6c4e0d370a05f24a0bf213"
+			"Rev": "c1cd2254a6dd314c9d73c338c12688c9325d85c6"
 		}
 	]
 }
