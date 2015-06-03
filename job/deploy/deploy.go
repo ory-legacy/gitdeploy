@@ -63,11 +63,13 @@ func createAppliances(c *config.Config, eh *flynn.EnvHelper, f func(name, id str
             id := uuid.NewRandom().String()
             switch strings.ToLower(name) {
                 case "mongodb":
-                w.Add(fmt.Sprintf("Attaching mongodb with id %s", id))
-                mongo.Create(id, &conf, eh)(w)
-                return f(name, id)
+                    w.Add(fmt.Sprintf("Attaching mongodb with id %s", id))
+                    mongo.Create(id, &conf, eh)(w)
+                    return f(name, id)
                 default:
-                w.AddError(errors.New(fmt.Sprintf("Appliance %s not supported", name)))
+                    err := errors.New(fmt.Sprintf("Appliance %s not supported", name))
+                    w.AddError(err)
+                    return err
             }
         }
         return nil

@@ -52,7 +52,7 @@ func CreateApp(app, wd string, noRemote bool) func(w task.WorkerLog) error {
 func ReleaseApp(wd, app string) func(w task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
 		w.Add("Releasing app...")
-		if err := task.Exec(w, wd, "git", "push", "flynn", "master", "--progress", app + ":master"); err != nil {
+		if err := task.Exec(w, wd, "git", "push", "--progress", "flynn", app + ":master"); err != nil {
 			return err
 		}
 		return nil

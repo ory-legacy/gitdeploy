@@ -69,9 +69,24 @@ func (w WorkerLog) AddError(err error) {
 // to all listeners, like the storage backend or the logger.
 // When one of the tasks returns an error, RunJob will abort all queued tasks and return the error.
 func RunJob(channel string, em *event.EventManager, taskList *TaskList) (error) {
-    c := make(WorkerLog)
-    defer close(c)
+    var c WorkerLog
+    cs := make([]WorkerLog, 0)
+    defer func() {
+        go func() {
+            // Output from a task is read in a goroutine. If the process exists,
+            // the goroutine could try to write something, although we've already closed
+            // the channel which results in a panic.
+            // To circumvent this, we've added a short sleep which should make sure, that all
+            // output has been read.
+            time.Sleep(2 * time.Second)
+            for _, v := range cs {
+                close(v)
+            }
+        } ()
+    }()
     for _, task := range taskList.Tasks {
+        c = make(WorkerLog)
+        cs = append(cs, c)
         go scanTask(em, c, task, channel)
         err := task.Task(c)
         if err != nil {
