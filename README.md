@@ -1,11 +1,10 @@
 # ory-am/gitdeploy
 
-[Gitdeploy.io](http://gitdeploy.io), the first 1-click deployment for your apps out there.
+[Gitdeploy.io](http://gitdeploy.io), the first time bounded cloud environment for your apps out there and an answer to:
 
-[Gitdeploy.io](http://gitdeploy.io) is built on top of the next-gen PaaS [Flynn](http://flynn.io).
+> How can I go from my development environment directly to a live test environment in the cloud? Even in today's age of automation, this "going live" or deployment process is too complicated. It really should be as simple as pushing a button to see the application work. *\- Read the [Project Description](https://github.com/ory-am/gitdeploy/wiki)*
 
-Try it yourself: 
-[![Deploy gitdeploy-go-example via gitdeploy.io](https://img.shields.io/badge/gitdeploy.io-deploy%20gitdeploy--go--example/master-green.svg)](https://www.gitdeploy.io/deploy?repository=https%3A%2F%2Fgithub.com%2Fory-am%2Fgitdeploy-go-example.git)
+GitDeploy is built on top of the next-gen PaaS [Flynn](http://flynn.io).
 
 ## Deploy your application
 
@@ -16,7 +15,7 @@ the `$PORT` and `$HOST` environment variables:
 [Example 1](https://github.com/ory-am/gitdeploy-go-example/blob/master/main.go#L22-L23)
 [Example 2](https://github.com/ory-am/gitdeploy-go-example/blob/master/main.go#L124-L125).  
 
-### [Golang](http://golang.org/)
+### [Golang](http://golang.org/) example
 
 See a Go example in action: 
 [![Deploy gitdeploy-go-example via gitdeploy.io](https://img.shields.io/badge/gitdeploy.io-deploy%20gitdeploy--go--example/master-green.svg)](https://www.gitdeploy.io/deploy?repository=https%3A%2F%2Fgithub.com%2Fory-am%2Fgitdeploy-go-example.git)
@@ -54,7 +53,7 @@ You need [Go](http://golang.org/) and [NodeJS](http://nodejs.org/) installed on 
 > docker run -d -p 27017:27017 library/mongo
 ```
 
-**On Linux*** download and install [Docker](https://www.docker.com/) and run `$ docker run -d -p 27017:27017 library/mongo`
+**On Linux** download and install [Docker](https://www.docker.com/) and run `$ docker run -d -p 27017:27017 library/mongo`
 
 **IMPORTANT:** If you reboot the boot2docker-vm or the host you need to restart the container as well. You can get the container id by doing `docker ps -l` and start it by doing `docker start {id}` (replace {id} with id from `docker ps -l`).
 
