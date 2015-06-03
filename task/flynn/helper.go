@@ -13,6 +13,9 @@ type EnvHelper struct {
 }
 
 func (f *EnvHelper) AddEnvVar(key, value string) {
+	if len(key) == 0 || len(value) == 0 {
+		return
+	}
 	if f.envVars == nil {
 		f.envVars = make([]string, 0)
 	}

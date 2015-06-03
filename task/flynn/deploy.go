@@ -5,10 +5,11 @@ import (
 	"log"
 )
 
+
 func ScaleApp(app, pn, amount string) func(w task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
 		w.Add("Releasing container...")
-		if err := task.Exec(w, "", "flynn", "-a", app, "scale", pn+"="+amount); err != nil {
+		if err := task.Exec(w, "", "flynn", "-a", app, "scale", "--no-wait", pn+"="+amount); err != nil {
 			return err
 		}
 		return nil
@@ -38,7 +39,7 @@ func CreateApp(app, wd string, noRemote bool) func(w task.WorkerLog) error {
 	return func(w task.WorkerLog) (err error) {
 		w.Add("Creating app...")
 		if noRemote {
-			err = task.Exec(w, wd, "flynn", "create", "-y", `-r ""`,app)
+			err = task.Exec(w, wd, "flynn", "create", "-y", `-r ""`, app)
 		} else {
 			err = task.Exec(w, wd, "flynn", "create", "-y", app)
 		}
@@ -52,7 +53,7 @@ func CreateApp(app, wd string, noRemote bool) func(w task.WorkerLog) error {
 func ReleaseApp(wd, app string) func(w task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
 		w.Add("Releasing app...")
-		if err := task.Exec(w, wd, "git", "push", "--progress", "flynn", app + ":master"); err != nil {
+		if err := task.Exec(w, wd, "git", "push", "--progress", "flynn", app+":master"); err != nil {
 			return err
 		}
 		return nil

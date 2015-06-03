@@ -10,6 +10,7 @@ type Storage interface {
 	GetApp(id string) (*App, error)
 	FindAppsOnKillList() ([]*App, error)
 	KillApp(app *App) error
+	UpdateApp(app *App) error
 	AddDeployEvent(app, message string) (*DeployEvent, error)
 	FindDeployLogsForApp(app string) ([]*DeployEvent, error)
 	GetNextUnreadDeployEvent(app string) (*DeployEvent, error)

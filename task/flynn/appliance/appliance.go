@@ -49,7 +49,7 @@ func CreateManifest(id string, port int, cmd []string) (string, error) {
 			},
 		},
 	}
-	manifestPath := createDirectory(id) + "/manifest.json"
+	manifestPath := manifestURI(id)
 	if enc, err := json.MarshalIndent(m, "", "\t"); err != nil {
 		return "", errors.New(fmt.Sprintf("Could not marshall manifest: %s", err.Error()))
 	} else if err := ioutil.WriteFile(manifestPath, enc, 0644); err != nil {
@@ -58,11 +58,11 @@ func CreateManifest(id string, port int, cmd []string) (string, error) {
 	return manifestPath, nil
 }
 
-func createDirectory(id string) (destination string) {
+func manifestURI(id string) (destination string) {
 	tempDir := strings.Trim(os.TempDir(), "/\\")
-	destination = fmt.Sprintf("/%s/%s", tempDir, id)
+	destination = fmt.Sprintf("/%s/%s.json", tempDir, id)
 	if runtime.GOOS == "windows" {
-		destination = fmt.Sprintf("%s\\%s", tempDir, id)
+		destination = fmt.Sprintf("%s\\%s.json", tempDir, id)
 	}
 	return destination
 }

@@ -7,6 +7,10 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"regexp"
+	"net/url"
+	"errors"
+	"fmt"
 )
 
 func IsGitAvailable() {
@@ -42,5 +46,24 @@ func IsFlynnAvailable() {
 			log.Fatal("Could not install Flynn CLI.")
 		}
 		log.Println("Flynn installed successfully!")
+	}
+}
+
+func GetFlynnHost() (s string, err error) {
+	reg := regexp.MustCompile(`(?mi)[a-z0-9\-A-Z]+\s+(https\:\/\/)controller\.([\.a-zA-Z0-9]+)\s+\(default\)$`)
+	if o, err := exec.Command("flynn", "cluster").CombinedOutput(); err != nil {
+		return "", err
+	} else {
+		s = string(o)
+	}
+	results := reg.FindStringSubmatch(s)
+	if len(results) < 2 {
+		return "", errors.New(fmt.Sprintf("Could not parse cluster information. Result: %s. Data: %s", results, s))
+	} else {
+		if u, err := url.Parse(results[1] + results[2]); err != nil {
+			return "", err
+		} else {
+			return u.Host, nil
+		}
 	}
 }

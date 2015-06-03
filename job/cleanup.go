@@ -17,6 +17,7 @@ func KillAppsOnHitList(store storage.Storage) {
 			for _, app := range apps {
 				for _, appliance := range app.Appliances {
 					go func(appliance *storage.Appliance) {
+						log.Printf("Cleaning up appliance: %s", appliance.ID)
 						e := exec.Command("flynn", "-a", appliance.ID, "delete", "-y")
 						if out, err := e.CombinedOutput(); err != nil {
 							log.Printf("An error occured while cleanup %s. Reason: %s", err.Error(), out)
@@ -26,6 +27,7 @@ func KillAppsOnHitList(store storage.Storage) {
 				}
 
 				go func(app *storage.App) {
+					log.Printf("Cleaning up app: %s", app.ID)
 					e := exec.Command("flynn", "-a", app.ID, "delete", "-y")
 					out, err := e.CombinedOutput()
 					reason := strings.Trim(string(out), " \n\r")
