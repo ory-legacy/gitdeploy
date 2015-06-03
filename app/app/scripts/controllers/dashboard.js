@@ -16,10 +16,10 @@ angular.module('gitdeployApp')
                 var dl = [], ps, update;
                 angular.forEach(data.data.deployLogs, function (v) {
                     try {
-                        var message = JSON.parse(v.message);
+                        var message = JSON.parse(v.message.replace(/^data\: /ig, ''));
                         dl.unshift(message.data.replace(/(\r\n|\r|\n)/gm, '\n'));
                     } catch (exc) {
-                        console.log(exc);
+                        console.log(exc, v.message.replace(/^data\: /ig, ''));
                     }
                 });
                 data.data.deployLogs = dl.join('\n');
@@ -54,7 +54,7 @@ angular.module('gitdeployApp')
                             }, 20000);
                         }
                     });
-                }
+                };
 
                 update();
             });

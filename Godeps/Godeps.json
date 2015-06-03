@@ -8,10 +8,6 @@
 			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
 		},
 		{
-			"ImportPath": "github.com/go-errors/errors",
-			"Rev": "01d535a7e0d0c52e283f462be8ceeb38e5bcaeeb"
-		},
-		{
 			"ImportPath": "github.com/gorilla/context",
 			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
 		},
@@ -47,6 +43,10 @@
 			"ImportPath": "gopkg.in/mgo.v2",
 			"Comment": "r2015.01.24-35-g01ee097",
 			"Rev": "01ee097136da162d1dd3c9b44fbdf3abf4fd6552"
+		},
+		{
+			"ImportPath": "gopkg.in/validator.v2",
+			"Rev": "8e445b9dc14ab1a1a78cc1f712df991307173ee6"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

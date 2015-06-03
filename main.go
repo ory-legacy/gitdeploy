@@ -3,60 +3,51 @@ package main
 import (
 	"code.google.com/p/go-uuid/uuid"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
 	gorillasession "github.com/gorilla/sessions"
 	"github.com/ory-am/common/env"
 	"github.com/ory-am/common/mgopath"
 	"github.com/ory-am/event"
-	gde "github.com/ory-am/gitdeploy/event"
+	"github.com/ory-am/gitdeploy/eco"
+	"github.com/ory-am/gitdeploy/ip"
 	"github.com/ory-am/gitdeploy/job"
+	"github.com/ory-am/gitdeploy/job/deploy"
 	gdLog "github.com/ory-am/gitdeploy/log"
+	"github.com/ory-am/gitdeploy/public"
 	"github.com/ory-am/gitdeploy/sse"
 	"github.com/ory-am/gitdeploy/storage"
 	"github.com/ory-am/gitdeploy/storage/mongo"
+	"github.com/ory-am/gitdeploy/task"
+	"github.com/ory-am/gitdeploy/task/flynn"
 	"github.com/ory-am/google-json-style-response/responder"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/validator.v2"
 	"log"
 	"net/http"
-	"os/exec"
-	"regexp"
 	"time"
-	"runtime"
-	"os"
-    "strings"
 )
 
 const (
 	sessionCurrentDeployment = "cdid"
-	sessionName = "gdp"
+	sessionName              = "gdp"
 )
 
 var (
-// API Version
-	ApiVersion = "1.0"
-
-// Generic configuration
-	host = env.Getenv("HOST", "")
-	port = env.Getenv("PORT", "7654")
-
-	envAppTtl = env.Getenv("APP_TTL", "30m")
-    envClusterConf = env.Getenv("FLYNN_CLUSTER_CONFIG", "")
-
-// Configuration for CORS
+	ApiVersion      = "1.0"
+	host            = env.Getenv("HOST", "")
+	port            = env.Getenv("PORT", "7654")
+	envAppTtl       = env.Getenv("APP_TTL", "30m")
+	envClusterConf  = env.Getenv("FLYNN_CLUSTER_CONFIG", "")
 	corsAllowOrigin = env.Getenv("CORS_ALLOW_ORIGIN", "http://localhost:9000")
-
-	sessionStore = gorillasession.NewCookieStore([]byte(env.Getenv("SESSION_SECRET", "changme")))
-
-// MongoDB
-	envMongoPath = env.Getenv("MONGODB", "mongodb://localhost:27017/gitdeploy")
-
-// Appliances
-    envAppliancesMongo = env.Getenv("APPLIANCE_MONGODB_30", "mongodb://localhost:27017/")
+	sessionStore    = gorillasession.NewCookieStore([]byte(env.Getenv("SESSION_SECRET", "changme")))
+	envMongoPath    = env.Getenv("MONGODB", "mongodb://localhost:27017/gitdeploy")
 )
 
 type deployRequest struct {
-	Repository string `json:"repository"`
+	Repository string `json:"repository",validate:"regex=^(https|http):\\/\\/github\\.com\\/[a-zA-Z0-9\\-\\_\\.]+/[a-zA-Z0-9\\-\\_\\.]+$"`
+	Ref        string `json:"ref",validate:"regex=^(origin\\/.*|tags\\/.*|[a-z0-9]+)$"`
 }
 
 type appResponse struct {
@@ -64,22 +55,20 @@ type appResponse struct {
 }
 
 func main() {
-	checkDependencies()
-	eventManager := event.New()
+	eco.IsGitAvailable()
+	eco.IsFlynnAvailable()
+	if b := flag.Bool("init", false, "Initialize flynn and git"); *b {
+		eco.InitFlynn(envClusterConf)
+	}
 
-	// mgo
 	db, dbName, err := mgopath.Connect(envMongoPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	eventManager := event.New()
 	storage := mongo.New(db, dbName)
-	eventManager.AttachListenerAggregate(storage)
-
-	// SSE broker
 	sseBroker := sse.New(storage)
-
-	// Log listener
+	eventManager.AttachListenerAggregate(storage)
 	eventManager.AttachListenerAggregate(new(gdLog.Listener))
 
 	// Mux router
@@ -89,7 +78,7 @@ func main() {
 	r.HandleFunc("/deployments", setCORSHeaders).Methods("OPTIONS")
 	r.HandleFunc("/deployments/{app:.+}/events", eventWrapperAction(sseBroker)).Methods("GET")
 	r.HandleFunc("/apps/{app:.+}", getAppHandler(storage)).Methods("GET")
-	r.PathPrefix("/").HandlerFunc(publicHandler("./app/dist"))
+	r.PathPrefix("/").HandlerFunc(public.HTML5ModeHandler("./app/dist", "index.html"))
 	http.Handle("/", r)
 
 	go job.KillAppsOnHitList(storage)
@@ -99,32 +88,17 @@ func main() {
 	log.Fatal(http.ListenAndServe(listen, nil))
 }
 
-func publicHandler(dir string) func(http.ResponseWriter, *http.Request) {
+func eventWrapperAction(sseBroker *sse.Broker) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		path := dir + r.URL.Path
-		if r.URL.Path == "/" {
-			path = dir + "/index.html"
-		}
-		pattern := `!\.html|\.js|\.svg|\.css|\.png|\.jpg$`
+		setCORSHeaders(w, r)
+		sseBroker.EventHandler(w, r)
+	}
+}
 
-		if f, err := os.Stat(path); err == nil {
-			if !f.IsDir() {
-				http.ServeFile(w, r, path)
-				return
-			} else {
-                http.NotFound(w, r)
-				return
-			}
-		}
-
-		if matched, err := regexp.MatchString(pattern, path); err != nil {
-			log.Printf("Could not exec regex: %s", err.Error())
-		} else if !matched {
-            http.ServeFile(w, r, dir + "/index.html")
-            return
-		} else {
-			http.NotFound(w, r)
-		}
+func deployWrapperAction(sseBroker *sse.Broker, em *event.EventManager, store *mongo.MongoStorage) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		setCORSHeaders(w, r)
+		deployAction(w, r, sseBroker, em, store)
 	}
 }
 
@@ -132,9 +106,7 @@ func configHandler(w http.ResponseWriter, r *http.Request) {
 	setCORSHeaders(w, r)
 	responseSuccess(w, struct {
 		Now time.Time `json:"now"`
-	}{
-		time.Now(),
-	})
+	}{time.Now()})
 }
 
 func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *http.Request) {
@@ -156,13 +128,14 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		logs, err := job.GetLogs(app.ID)
+
+		logs, err := flynn.GetLogs(app.ID)
 		if err != nil {
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		ps, err := job.GetPS(app.ID)
+		ps, err := flynn.GetProcs(app.ID)
 		if err != nil {
 			responseError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -177,37 +150,9 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 		responseSuccess(w, struct {
 			*storage.App
 			Logs       string                 `json:"logs"`
-			DeployLogs []*storage.DeployEvent `json:"deployLogs"`
+			DeployLogs []*storage.DeployEvent `json:"deployLogs,inline"`
 			PS         string                 `json:"ps"`
 		}{app, logs, deployLogs, ps})
-	}
-}
-
-func cleanUpSession(w http.ResponseWriter, r *http.Request) error {
-	session, err := sessionStore.Get(r, sessionName)
-	if err != nil {
-		responseError(w, http.StatusBadRequest, "Please delete your cookies.")
-		return err
-	}
-	delete(session.Values, sessionCurrentDeployment)
-	if err := session.Save(r, w); err != nil {
-		responseError(w, http.StatusInternalServerError, err.Error())
-		return err
-	}
-	return nil
-}
-
-func eventWrapperAction(sseBroker *sse.Broker) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		setCORSHeaders(w, r)
-		sseBroker.EventHandler(w, r)
-	}
-}
-
-func deployWrapperAction(sseBroker *sse.Broker, em *event.EventManager, store *mongo.MongoStorage) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		setCORSHeaders(w, r)
-		deployAction(w, r, sseBroker, em, store)
 	}
 }
 
@@ -222,97 +167,75 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 	if v, ok := session.Values[sessionCurrentDeployment].(string); ok && len(v) > 0 {
 		app, err := store.GetApp(v)
 		if err != nil {
-            cleanUpSession(w, r)
-            log.Printf("Could not fetch app from cookie: %s", err.Error())
-        } else if !sseBroker.IsChannelOpen(app.ID) {
-            cleanUpSession(w, r)
-            log.Printf("Channel %s does not exist any more", app.ID)
+			cleanUpSession(w, r)
+			log.Printf("Could not fetch app from cookie: %s", err.Error())
+		} else if !sseBroker.IsChannelOpen(app.ID) {
+			cleanUpSession(w, r)
+			log.Printf("Channel %s does not exist any more", app.ID)
 		} else {
 			responseSuccess(w, app)
-            return
+			return
 		}
 	}
 
-	// Parse body
 	dr := new(deployRequest)
-	decoder := json.NewDecoder(r.Body)
-	decoder.Decode(dr)
-
-	// Validate URL
-	regExpression := "(https|http):\\/\\/github\\.com\\/[a-zA-Z0-9\\-\\_\\.]+/[a-zA-Z0-9\\-\\_\\.]+\\.git"
-	if match, _ := regexp.MatchString(regExpression, dr.Repository); !match {
-		responseError(w, http.StatusBadRequest, "I only support GitHub.")
-		return
-	}
-
 	app := uuid.NewRandom().String()
-	if ttl, err := time.ParseDuration(envAppTtl); err != nil {
-		log.Println(err.Error())
+	ttl, err := time.ParseDuration(envAppTtl)
+	if err != nil {
 		responseError(w, http.StatusInternalServerError, err.Error())
 		return
-	} else {
-		appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository, getIP(r))
-		if err != nil {
-			responseError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		session.Values[sessionCurrentDeployment] = appEntity.ID
-		if err := session.Save(r, w); err != nil {
-			responseError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		go runJobs(w, r, em, dr, appEntity, sseBroker, session, store)
-		responseSuccess(w, appEntity)
+	} else if err := json.NewDecoder(r.Body).Decode(dr); err != nil {
+		responseError(w, http.StatusInternalServerError, err.Error())
+		return
+	} else if err := validator.Validate(dr); err != nil {
+		responseError(w, http.StatusBadRequest, fmt.Sprintf("Validation failed: %s", err))
+		return
 	}
+
+	if dr.Repository[0:len(dr.Repository)-4] != ".git" {
+		dr.Repository = dr.Repository + ".git"
+	}
+	appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository, ip.GetRemoteAddr(r), dr.Ref)
+	if err != nil {
+		responseError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	session.Values[sessionCurrentDeployment] = appEntity.ID
+	if err := session.Save(r, w); err != nil {
+		responseError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	responseSuccess(w, appEntity)
+	go func() {
+		sseBroker.OpenChannel(app)
+		sseBroker.Start(app)
+		defer func() {
+			// Give the client the chance to read the output...
+			time.Sleep(15 * time.Second)
+			sseBroker.CloseChannel(app)
+		}()
+		tasks := deploy.CreateJob(store, appEntity)
+		err := task.RunJob(app, em, tasks)
+		if err != nil {
+			log.Printf("Error in task.RunJob: %s", err)
+		}
+	}()
 }
 
-func runJobs(w http.ResponseWriter, r *http.Request, em *event.EventManager, dr *deployRequest, app *storage.App, sseBroker *sse.Broker, session *gorillasession.Session, store *mongo.MongoStorage) {
-	sseBroker.OpenChannel(app.ID)
-	sseBroker.Start(app.ID)
-	defer func() {
-		// Give the client the chance to read the output...
-		time.Sleep(15 * time.Second)
-		sseBroker.CloseChannel(app.ID)
-	}()
-
-	em.Trigger("app.created", gde.New(app.ID, app.ID))
-
-	destination, err := job.Clone(em, app.ID, dr.Repository)
+func cleanUpSession(w http.ResponseWriter, r *http.Request) error {
+	session, err := sessionStore.Get(r, sessionName)
 	if err != nil {
-		log.Printf("Error in job.clone %s: %s", app.ID, err.Error())
-		return
+		responseError(w, http.StatusBadRequest, "Please delete your cookies.")
+		return err
 	}
-
-	if err = job.Parse(em, app.ID, destination); err != nil {
-		log.Printf("Error in job.parse %s: %s", app.ID, err.Error())
-		return
-	}
-
-	if err = job.Deploy(em, app.ID, destination); err != nil {
-		log.Printf("Error in job.deploy %s: %s", app.ID, err.Error())
-		return
-	}
-
-	cluster, err := job.GetCluster(em, app.ID)
-	if err != nil {
-		log.Printf("Error in job.getCluster %s: %s", app.ID, err.Error())
-		return
-	}
-
-	app.URL = fmt.Sprintf("%s.%s", app.ID, cluster.Host)
-	if err := store.UpdateApp(app); err != nil {
+	delete(session.Values, sessionCurrentDeployment)
+	if err := session.Save(r, w); err != nil {
 		responseError(w, http.StatusInternalServerError, err.Error())
-		log.Printf("Error %s: %s", app.ID, err.Error())
-		return
+		return err
 	}
-
-    if err = job.Cleanup(em, app.ID, destination); err != nil {
-        log.Printf("Error in job.cleanup %s: %s", app.ID, err.Error())
-        return
-    }
-
-	log.Println("Deployment successful.")
-	em.Trigger("app.deployed", gde.New(app.ID, app.URL))
+	return nil
 }
 
 // Set the different CORS headers required for CORS request
@@ -332,57 +255,4 @@ func responseError(w http.ResponseWriter, code int, message string) {
 func responseSuccess(w http.ResponseWriter, data interface{}) {
 	response := responder.New(ApiVersion)
 	response.Write(w, response.Success(data))
-}
-
-func checkDependencies() {
-	go func() {
-		_, err := exec.LookPath("git")
-		if err != nil {
-			log.Fatal("Git CLI is required but not installed or not in path.")
-		}
-	}()
-	go checkIfFlynnExists()
-}
-
-func checkIfFlynnExists() {
-	func() {
-		_, err := exec.LookPath("flynn")
-		if err != nil {
-			if runtime.GOOS == "windows" {
-				log.Fatal("Flynn CLI is required but not installed or not in path.")
-			}
-			log.Println("Could not find Flynn CLI, trying to install...")
-			if o, err := exec.Command("sh", "bin/flynn-install.sh").CombinedOutput(); err != nil {
-				log.Printf("Could not install Flynn CLI (%s): %s", err.Error(), o)
-			} else if _, err := exec.LookPath("flynn"); err != nil {
-				log.Fatal("Could not install Flynn CLI.")
-			}
-            log.Println("Flynn installed successfully!")
-            log.Println("Adding flynn cluster...")
-            log.Println(envClusterConf)
-            args := append([]string{"cluster", "add"}, strings.Split(envClusterConf, " ")...)
-            log.Printf("%s", args)
-            if o, err := exec.Command("flynn", args...).CombinedOutput(); err != nil {
-                log.Fatalf("Could not add cluster (status: %s) (output: %s) (args: %s)", err.Error(), o, args)
-            } else {
-                log.Printf("Adding cluster successful: %s", o)
-            }
-		}
-	}()
-}
-
-func getIP(r *http.Request) string {
-    ip := removePort(r.RemoteAddr)
-    if len(r.Header.Get("X-FORWARDED-FOR")) > 0 {
-        ip = r.Header.Get("X-FORWARDED-FOR")
-    }
-    return ip
-}
-
-func removePort(ip string) string {
-    split := strings.Split(ip, ":")
-    if len(split) < 2 {
-        return ip
-    }
-    return strings.Join(split[:len(split)-1], ":")
 }

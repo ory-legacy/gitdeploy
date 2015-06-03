@@ -3,7 +3,7 @@ package mongo
 import (
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/ory-am/event"
-	gde "github.com/ory-am/gitdeploy/event"
+	"github.com/ory-am/gitdeploy/sse"
 	"github.com/ory-am/gitdeploy/storage"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -14,17 +14,18 @@ import (
 const (
 	appCollection          = "app"
 	appDeployLogCollection = "appEvents"
+	applianceCollection    = "appAppliances"
 )
 
 type MongoStorage struct {
-	session *mgo.Session
+	session  *mgo.Session
 	database string
 }
 
 // NewUserStorage creates a new database session for storing users
 func New(session *mgo.Session, database string) *MongoStorage {
 	s := &MongoStorage{
-		session: session,
+		session:  session,
 		database: database,
 	}
 	s.ensureUnique(appCollection, []string{"id"})
@@ -32,14 +33,25 @@ func New(session *mgo.Session, database string) *MongoStorage {
 	return s
 }
 
-func (s *MongoStorage) AddApp(app string, ttl time.Time, repository, ip string) (a *storage.App, err error) {
+func (s *MongoStorage) AddAppliance(app, appliance, name string) (*storage.Appliance, error) {
+	a := &storage.Appliance{
+		ID:        appliance,
+		CreatedAt: time.Now(),
+		Name:      name,
+		Killed:    false,
+	}
+	return a, s.getCollection(appCollection).Update(bson.M{"id": app}, bson.M{"$push": bson.M{"appliances": a}})
+}
+
+func (s *MongoStorage) AddApp(app string, ttl time.Time, repository, ip, ref string) (a *storage.App, err error) {
 	a = &storage.App{
 		ID:         app,
 		ExpiresAt:  ttl,
 		CreatedAt:  time.Now(),
 		Killed:     false,
 		Repository: repository,
-        IP: ip,
+		IP:         ip,
+		Ref:        ref,
 	}
 	err = s.getCollection(appCollection).Insert(a)
 	return a, err
@@ -100,23 +112,30 @@ func (s *MongoStorage) DeployEventIsRead(e *storage.DeployEvent) error {
 }
 
 func (s *MongoStorage) Trigger(name string, data interface{}) {
-	if e, ok := data.(gde.JobEvent); ok {
-		// TODO Ugly...
-		e.SetEventName(name)
-		if _, err := s.AddDeployEvent(e.GetApp(), e.GetMessage()); err != nil {
-			log.Fatal(err.Error())
+	if e, ok := data.(*sse.Event); ok {
+		if _, err := s.AddDeployEvent(e.App, e.SSEify()); err != nil {
+			log.Printf("%s", err.Error())
 		}
+	} else {
+		log.Fatalf("Log listener: Type mismatch: %s is not *sse.Event", data)
 	}
 }
 
-func (s *MongoStorage) AttachAggregate(em *event.EventManager) {
-	em.AttachListener("jobs.clone", s)
-	em.AttachListener("jobs.deploy", s)
-	em.AttachListener("jobs.parse", s)
-	em.AttachListener("app.created", s)
-	em.AttachListener("app.deployed", s)
-	em.AttachListener("jobs.cluster", s)
-    em.AttachListener("jobs.cleanup", s)
+func (l *MongoStorage) AttachAggregate(em *event.EventManager) {
+	em.AttachListener("git.clone", l)
+	em.AttachListener("config.parse", l)
+	em.AttachListener("config.procs", l)
+	em.AttachListener("config.buildpack", l)
+	em.AttachListener("config.env", l)
+	em.AttachListener("config.appliances", l)
+	em.AttachListener("env.commit", l)
+	em.AttachListener("git.add", l)
+	em.AttachListener("git.commit", l)
+	em.AttachListener("app.release", l)
+	em.AttachListener("app.create", l)
+	em.AttachListener("app.cleanup", l)
+	em.AttachListener("app.deployed", l)
+	em.AttachListener("error", l)
 }
 
 func (s *MongoStorage) getCollection(name string) *mgo.Collection {

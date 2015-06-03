@@ -37,14 +37,14 @@ type channel struct {
 }
 
 func (b *Broker) IsChannelOpen(name string) bool {
-    _, ok := b.channels[name]
-    return ok
+	_, ok := b.channels[name]
+	return ok
 }
 
 func (b *Broker) OpenChannel(name string) *channel {
-    if b.IsChannelOpen(name) {
-        return b.channels[name]
-    }
+	if b.IsChannelOpen(name) {
+		return b.channels[name]
+	}
 	c := &channel{
 		make(map[chan *storage.DeployEvent]bool),
 		make(chan (chan *storage.DeployEvent)),
@@ -71,7 +71,7 @@ func (b *Broker) Start(channel string) error {
 	}
 
 	go func() {
-		log.Printf("Starting channel channel %s...", channel)
+		log.Printf("Starting channel %s...", channel)
 		for {
 			if _, ok := b.channels[channel]; !ok {
 				// Channel closed
@@ -183,7 +183,7 @@ func (b *Broker) EventHandler(w http.ResponseWriter, r *http.Request) {
 		case e := <-messageChan:
 			if len(e.Message) > 0 {
 				// Write to the ResponseWriter, `w`.
-				fmt.Fprintf(w, "data: %s\n\n", e.Message)
+				fmt.Fprintf(w, "%s\n\n", e.Message)
 
 				// Flush the response. This is only possible if
 				// the response supports streaming.
