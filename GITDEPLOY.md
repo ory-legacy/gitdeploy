@@ -19,8 +19,9 @@ env:
 # Attach services (OPTIONAL)
 services:
     - service: mongodb
-      # Requires a specific MongoDB version (RECOMMENDED) (DEFAULT: 3.0)
-      version: 3.0
+      # Requires a specific MongoDB version (RECOMMENDED) (DEFAULT: latest)
+      # See https://registry.hub.docker.com/_/mongo/tags/manage/ for supported versions
+      version: latest
       # Set up environment variable bindings
       # Warning: Variables called HOST and PORT will be overriden
       # INFO: In the following case, the mongodb instance's hostname is going
