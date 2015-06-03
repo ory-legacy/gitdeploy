@@ -1,0 +1,56 @@
+{
+	"ImportPath": "github.com/ory-am/gitdeploy",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/go-uuid/uuid",
+			"Comment": "null-15",
+			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "47e8f450ef38c857cdd922ec08862ca9d65a1c6d"
+		},
+		{
+			"ImportPath": "github.com/gorilla/securecookie",
+			"Rev": "8e98dd730fc43f1383f19615db6f2e702c9738e8"
+		},
+		{
+			"ImportPath": "github.com/gorilla/sessions",
+			"Rev": "f61c3ec2cf65d69e7efedfd4d060fe128882c951"
+		},
+		{
+			"ImportPath": "github.com/ory-am/common/env",
+			"Rev": "e42bae29998fb8c67ba14851e012148532707e4b"
+		},
+		{
+			"ImportPath": "github.com/ory-am/common/mgopath",
+			"Rev": "e42bae29998fb8c67ba14851e012148532707e4b"
+		},
+		{
+			"ImportPath": "github.com/ory-am/event",
+			"Rev": "5a61fab60536468048e843caaacfa28c97d26bc5"
+		},
+		{
+			"ImportPath": "github.com/ory-am/google-json-style-response/responder",
+			"Rev": "49cfd34856d402e4a0b5ab35c6aab187e9e74f58"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2",
+			"Comment": "r2015.01.24-35-g01ee097",
+			"Rev": "01ee097136da162d1dd3c9b44fbdf3abf4fd6552"
+		},
+		{
+			"ImportPath": "gopkg.in/validator.v2",
+			"Rev": "8e445b9dc14ab1a1a78cc1f712df991307173ee6"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "c1cd2254a6dd314c9d73c338c12688c9325d85c6"
+		}
+	]
+}

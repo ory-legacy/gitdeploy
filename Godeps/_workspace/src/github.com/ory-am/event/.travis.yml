@@ -1,0 +1,12 @@
+language: go
+
+go:
+    - release
+
+install:
+    - go get -d -v ./... && go build -v ./...
+    - go get github.com/stretchr/testify/assert
+
+script:
+     - go test ./... -bench *
+     - go test ./... -cover
