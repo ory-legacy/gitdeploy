@@ -17,7 +17,7 @@ func Create(id string, c *config.DatabaseConfig, f *flynn.EnvHelper) func(w task
 
 		w.Add("Generating manifest for MongoDB...")
 		url := fmt.Sprintf("https://registry.hub.docker.com?name=mongo&tag=%s", c.Version)
-		manifest, err := appliance.CreateManifest(id, 27017, []string{"mongod"})
+		manifest, err := appliance.CreateManifest(id, 27017, []string{"sh", "-c", "mkdir -p /data/db && mongod"})
 		if err != nil {
 			return err
 		}
