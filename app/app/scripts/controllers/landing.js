@@ -30,7 +30,7 @@ angular.module('gitdeployApp')
             $scope.refs = [];
             $scope.$watchCollection('repository', function() {
                 var parser = document.createElement('a'), name;
-                if ($scope.repository.url === undefined || !$scope.repository.url.match(/(http|https)\:\/\/github\.com\/[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-\.]+/)){
+                if ($scope.repository.url === undefined || !$scope.repository.url.match(/(http|https)\:\/\/github\.com\/[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-\.\_]+/)){
                     return;
                 }
                 if ($scope.repository.url === lastUrl) {

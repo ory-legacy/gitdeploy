@@ -24,7 +24,7 @@
             <label class="sr-only" for="repositoryUrl">GitHub repository</label>
             <div class="input-group">
                 <div class="input-group-addon"><span class="fa fa-github"></span></div>
-                <input required pattern="(http|https)\:\/\/github\.com\/[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-\.]+"
+                <input required pattern="(http|https)\:\/\/github\.com\/[a-zA-Z0-9\-\_]+\/[a-zA-Z0-9\-\.\_]+"
                        ng-model="repository.url" aria-describedby="helpBlock" type="text" length="30"
                        class="form-control input-lg" id="repositoryUrl"
                        placeholder="https://github.com/your/repository">
