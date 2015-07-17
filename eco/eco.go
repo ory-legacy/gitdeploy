@@ -22,7 +22,7 @@ func IsGitAvailable() {
 func InitFlynn(clusterConf string) {
 	w := make(task.WorkerLog)
 	if err := flynn.AddKey(w); err != nil {
-		log.Fatalf("Could not init flynn: $s", err.Error())
+		log.Fatalf("Could not init flynn: %s", err.Error())
 	}
 	log.Println("Adding flynn cluster...")
 	args := append([]string{"cluster", "add"}, strings.Split(clusterConf, " ")...)

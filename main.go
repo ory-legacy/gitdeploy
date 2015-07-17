@@ -57,7 +57,7 @@ type appResponse struct {
 func main() {
 	eco.IsGitAvailable()
 	eco.IsFlynnAvailable()
-	if b := flag.Bool("init", false, "Initialize flynn and git"); *b {
+	if b := flag.Bool("no-init", false, "Do not initialize flynn and git"); !*b {
 		eco.InitFlynn(envClusterConf)
 	}
 
