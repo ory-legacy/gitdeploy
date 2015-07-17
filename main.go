@@ -57,8 +57,11 @@ type appResponse struct {
 func main() {
 	eco.IsGitAvailable()
 	eco.IsFlynnAvailable()
-	if b := flag.Bool("no-init", false, "Do not initialize flynn and git"); !*b {
+	init := flag.Bool("init", false, "Initialize flynn")
+	flag.Parse()
+	if *init {
 		eco.InitFlynn(envClusterConf)
+		eco.InitGit()
 	}
 
 	db, dbName, err := mgopath.Connect(envMongoPath)
@@ -192,8 +195,11 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 		return
 	}
 
-	if dr.Repository[0:len(dr.Repository)-4] != ".git" {
+	if dr.Repository[len(dr.Repository)-4:] != ".git" {
 		dr.Repository = dr.Repository + ".git"
+	}
+	if len(dr.Ref) == 0 {
+		dr.Ref = "master"
 	}
 	appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository, ip.GetRemoteAddr(r), dr.Ref)
 	if err != nil {

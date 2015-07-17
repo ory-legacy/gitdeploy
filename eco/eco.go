@@ -11,6 +11,15 @@ import (
 	"fmt"
 )
 
+func InitGit() {
+	if o, err := exec.Command("git", "config", "--global", "user.name", "gd").CombinedOutput(); err != nil {
+		log.Fatal("Could not set git user name (%s): %s", err.Error(), string(o))
+	}
+	if o, err := exec.Command("git", "config", "--global", "user.email", "gd@gitdeploy.io").CombinedOutput(); err != nil {
+		log.Fatal("Could not set git user name (%s): %s", err.Error(), string(o))
+	}
+}
+
 func IsGitAvailable() {
 	if _, err := exec.LookPath("git"); err != nil {
 		log.Fatal("Git CLI is required but not installed or not in path.")
