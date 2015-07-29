@@ -160,6 +160,8 @@ func getAppHandler(store *mongo.MongoStorage) func(w http.ResponseWriter, r *htt
 }
 
 func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker, em *event.EventManager, store *mongo.MongoStorage) {
+	app := uuid.NewRandom().String()
+	log.Printf("Trying to fetch session: %s", app)
 	session, err := sessionStore.Get(r, sessionName)
 	if err != nil {
 		responseError(w, http.StatusBadRequest, "Please delete your cookies.")
@@ -168,21 +170,21 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 
 	// Check if the user is currently deploying an application and switch to that one.
 	if v, ok := session.Values[sessionCurrentDeployment].(string); ok && len(v) > 0 {
-		app, err := store.GetApp(v)
+		a, err := store.GetApp(v)
 		if err != nil {
 			cleanUpSession(w, r)
 			log.Printf("Could not fetch app from cookie: %s", err.Error())
-		} else if !sseBroker.IsChannelOpen(app.ID) {
+		} else if !sseBroker.IsChannelOpen(a.ID) {
 			cleanUpSession(w, r)
-			log.Printf("Channel %s does not exist any more", app.ID)
+			log.Printf("Channel %s does not exist any more", a.ID)
 		} else {
-			responseSuccess(w, app)
+			responseSuccess(w, a)
 			return
 		}
 	}
 
+	log.Printf("No deployment active for this session, starting new one: %s", app)
 	dr := new(deployRequest)
-	app := uuid.NewRandom().String()
 	ttl, err := time.ParseDuration(envAppTtl)
 	if err != nil {
 		responseError(w, http.StatusInternalServerError, err.Error())
@@ -195,12 +197,15 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 		return
 	}
 
+	log.Printf("Validation passed: %s", app)
 	if dr.Repository[len(dr.Repository)-4:] != ".git" {
 		dr.Repository = dr.Repository + ".git"
 	}
 	if len(dr.Ref) == 0 {
 		dr.Ref = "master"
 	}
+
+	log.Printf("Storing app information: %s", app)
 	appEntity, err := store.AddApp(app, time.Now().Add(ttl), dr.Repository, ip.GetRemoteAddr(r), dr.Ref)
 	if err != nil {
 		responseError(w, http.StatusInternalServerError, err.Error())
@@ -213,16 +218,21 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 		return
 	}
 
+	log.Printf("Storing app information: %s", app)
 	responseSuccess(w, appEntity)
 	go func() {
 		sseBroker.OpenChannel(app)
 		sseBroker.Start(app)
 		defer func() {
+			log.Printf("Waiting for slow clients: %s", app)
 			// Give the client the chance to read the output...
-			time.Sleep(15 * time.Second)
+			time.Sleep(5 * time.Second)
+			log.Printf("Timeout for slow clients: %s", app)
 			sseBroker.CloseChannel(app)
 		}()
+		log.Printf("Creating job: %s", app)
 		tasks := deploy.CreateJob(store, appEntity)
+		log.Printf("Run job: %s", app)
 		err := task.RunJob(app, em, tasks)
 		if err != nil {
 			log.Printf("Error in task.RunJob: %s", err)
