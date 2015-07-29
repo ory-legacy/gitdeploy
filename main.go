@@ -169,19 +169,20 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 	}
 
 	// Check if the user is currently deploying an application and switch to that one.
-	if v, ok := session.Values[sessionCurrentDeployment].(string); ok && len(v) > 0 {
-		a, err := store.GetApp(v)
-		if err != nil {
-			cleanUpSession(w, r)
-			log.Printf("Could not fetch app from cookie: %s", err.Error())
-		} else if !sseBroker.IsChannelOpen(a.ID) {
-			cleanUpSession(w, r)
-			log.Printf("Channel %s does not exist any more", a.ID)
-		} else {
-			responseSuccess(w, a)
-			return
-		}
-	}
+	//	if v, ok := session.Values[sessionCurrentDeployment].(string); ok && len(v) > 0 {
+	//		a, err := store.GetApp(v)
+	//		if err != nil {
+	//			cleanUpSession(w, r)
+	//			log.Printf("Could not fetch app from cookie: %s", err.Error())
+	//		} else if !sseBroker.IsChannelOpen(a.ID) {
+	//			cleanUpSession(w, r)
+	//			log.Printf("Channel %s does not exist any more", a.ID)
+	//		} else if !a.Deployed {
+	//			log.Printf("Channel %s found!", a.ID)
+	//			responseSuccess(w, a)
+	//			return
+	//		}
+	//	}
 
 	log.Printf("No deployment active for this session, starting new one: %s", app)
 	dr := new(deployRequest)
@@ -218,7 +219,7 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 		return
 	}
 
-	log.Printf("Storing app information: %s", app)
+	log.Printf("Responding app information: %s", app)
 	responseSuccess(w, appEntity)
 	go func() {
 		sseBroker.OpenChannel(app)
@@ -228,6 +229,10 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 			// Give the client the chance to read the output...
 			time.Sleep(5 * time.Second)
 			log.Printf("Timeout for slow clients: %s", app)
+			//appEntity.Deployed = true;
+			//if err := store.UpdateApp(appEntity); err != nil {
+			//	log.Printf("Fatal error when trying to update app %s", app)
+			//}
 			sseBroker.CloseChannel(app)
 		}()
 		log.Printf("Creating job: %s", app)
