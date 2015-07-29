@@ -227,7 +227,7 @@ func deployAction(w http.ResponseWriter, r *http.Request, sseBroker *sse.Broker,
 		defer func() {
 			log.Printf("Waiting for slow clients: %s", app)
 			// Give the client the chance to read the output...
-			time.Sleep(5 * time.Second)
+			time.Sleep(10 * time.Second)
 			log.Printf("Timeout for slow clients: %s", app)
 			//appEntity.Deployed = true;
 			//if err := store.UpdateApp(appEntity); err != nil {
