@@ -11,8 +11,8 @@ import (
 	"github.com/ory-am/gitdeploy/task/flynn/appliance/mongo"
 	"github.com/ory-am/gitdeploy/task/git"
 	//"github.com/ory-am/gitdeploy/task/janitor"
-	"strings"
 	"github.com/ory-am/gitdeploy/eco"
+	"strings"
 )
 
 func CreateJob(store storage.Storage, app *storage.App) (tasks *task.TaskList) {

@@ -2,11 +2,11 @@ package mongo
 
 import (
 	"code.google.com/p/go-uuid/uuid"
+	"fmt"
 	"github.com/ory-am/gitdeploy/task"
 	"github.com/ory-am/gitdeploy/task/config"
 	"github.com/ory-am/gitdeploy/task/flynn"
 	"github.com/ory-am/gitdeploy/task/flynn/appliance"
-	"fmt"
 )
 
 func Create(id string, c *config.DatabaseConfig, f *flynn.EnvHelper) func(w task.WorkerLog) error {

@@ -29,6 +29,7 @@ type App struct {
 	IP         string      `json:"ip",bson:"ip"`
 	Appliances []Appliance `json:"appliances",bson:"appliances"`
 	Ref        string      `json:"ref",bson:"ref"`
+	Deployed   bool        `json:"deployed",bson:"deployed"`
 }
 
 // Appliance is the appliance entity.

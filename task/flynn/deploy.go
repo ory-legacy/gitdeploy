@@ -5,7 +5,6 @@ import (
 	"log"
 )
 
-
 func ScaleApp(app, pn, amount string) func(w task.WorkerLog) error {
 	return func(w task.WorkerLog) error {
 		w.Add("Releasing container...")

@@ -1,14 +1,14 @@
 package eco
 
 import (
-	"log"
-	"os/exec"
-	"runtime"
-	"strings"
-	"regexp"
-	"net/url"
 	"errors"
 	"fmt"
+	"log"
+	"net/url"
+	"os/exec"
+	"regexp"
+	"runtime"
+	"strings"
 )
 
 func InitGit() {
