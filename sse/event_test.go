@@ -13,7 +13,7 @@ func TestGetApp(t *testing.T) {
 
 func TestSSEify(t *testing.T) {
 	e := NewEvent("foo", "bar", "baz")
-	r, err := json.MarshalIndent(e, "data: ", "\t")
+	r, err := json.Marshal(e, "data: ")
 	assert.Nil(t, err)
 	assert.Equal(t, string(r), e.SSEify())
 }
