@@ -39,8 +39,8 @@ func TestRunJob(t *testing.T) {
 	em.AttachListener("a", l)
 	em.AttachListener("b", l)
 
-	err := RunJob("a", "channel", em, tl)
-	err = RunJob("b", "channel", em, tl)
+	err := RunJob("channel", em, tl)
+	err = RunJob("channel", em, tl)
 
 	assert.Equal(t, 2, len(l.called))
 	assert.Equal(t, 3, l.called["a"])
@@ -52,6 +52,6 @@ func TestRunJobError(t *testing.T) {
 	em := event.New()
 	tl := []Task{mockErrorTask}
 
-	err := RunJob("a", "channel", em, tl)
+	err := RunJob("channel", em, tl)
 	assert.Equal(t, err, errMock)
 }
