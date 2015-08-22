@@ -1,5 +1,7 @@
 # ory-am/gitdeploy
 
+**This project is currently on halt**
+
 [Gitdeploy.io](http://gitdeploy.io), the first time bounded cloud environment for your apps out there and an answer to:
 
 > How can I go from my development environment directly to a live test environment in the cloud? Even in today's age of automation, this "going live" or deployment process is too complicated. It really should be as simple as pushing a button to see the application work. *\- Read the [Project Description](https://github.com/ory-am/gitdeploy/wiki)*
